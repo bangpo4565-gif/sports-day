@@ -77,13 +77,29 @@ export default function AdminTab() {
         points: pointsForRank(ranks[team.id]),
       }))
 
-    const { error: upsertError } = await supabase
-      .from('results')
-      .upsert(rows, { onConflict: 'event_id,team_id' })
+    // 순위를 "선택 안 함"으로 되돌린 반은, 예전에 저장된 결과가 있으면 삭제 대상
+    const existingTeamIds = new Set(existing.map((r) => r.team_id))
+    const teamIdsToDelete = gradeTeams
+      .filter((team) => !ranks[team.id] && existingTeamIds.has(team.id))
+      .map((team) => team.id)
+
+    const { error: upsertError } = rows.length
+      ? await supabase.from('results').upsert(rows, { onConflict: 'event_id,team_id' })
+      : { error: null }
+
+    let deleteError = null
+    if (!upsertError && teamIdsToDelete.length) {
+      const { error } = await supabase
+        .from('results')
+        .delete()
+        .eq('event_id', eventId)
+        .in('team_id', teamIdsToDelete)
+      deleteError = error
+    }
 
     setSaving(false)
-    if (upsertError) {
-      setMessage('저장 중 오류가 났어요: ' + upsertError.message)
+    if (upsertError || deleteError) {
+      setMessage('저장 중 오류가 났어요: ' + (upsertError || deleteError).message)
     } else {
       setMessage('저장 완료! 학생 화면에도 바로 반영돼요.')
       const { data } = await supabase.from('results').select('*').eq('event_id', eventId)

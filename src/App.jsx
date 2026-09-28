@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import ViewTab from './ViewTab'
 import AdminTab from './AdminTab'
+import PhotoTab from './PhotoTab'
 import schoolBuilding from './assets/school/school-building.png'
-import treePhoto from './assets/school/tree.png'
-import rosePhoto from './assets/school/rose.png'
 import './App.css'
 
 function App() {
@@ -12,6 +11,8 @@ function App() {
   return (
     <div className="page">
       <div className="school-banner">
+        <span className="banner-emoji banner-emoji-left" aria-hidden="true">🏃‍♂️🤸‍♀️🏃‍♀️</span>
+        <span className="banner-emoji banner-emoji-right" aria-hidden="true">⚽🎉🏅</span>
         <img src={schoolBuilding} alt="농소중학교 전경" className="school-photo" />
         <div className="school-banner-overlay">
           <p className="school-name">농소중학교</p>
@@ -33,21 +34,15 @@ function App() {
           <button className={`tab${tab === 'admin' ? ' active' : ''}`} onClick={() => setTab('admin')}>
             점수 입력
           </button>
+          <button className={`tab${tab === 'photos' ? ' active' : ''}`} onClick={() => setTab('photos')}>
+            활동 사진
+          </button>
         </div>
       </header>
 
-      {tab === 'view' ? <ViewTab /> : <AdminTab />}
-
-      <footer className="school-footer">
-        <div className="symbol">
-          <img src={treePhoto} alt="교목 사철나무" />
-          <p><strong>교목</strong> 사철나무</p>
-        </div>
-        <div className="symbol">
-          <img src={rosePhoto} alt="교화 장미" />
-          <p><strong>교화</strong> 장미</p>
-        </div>
-      </footer>
+      {tab === 'view' && <ViewTab />}
+      {tab === 'admin' && <AdminTab />}
+      {tab === 'photos' && <PhotoTab />}
     </div>
   )
 }
