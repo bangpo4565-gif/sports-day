@@ -3,6 +3,7 @@ import ViewTab from './ViewTab'
 import AdminTab from './AdminTab'
 import PhotoTab from './PhotoTab'
 import RosterTab from './RosterTab'
+import Confetti from './Confetti'
 import './App.css'
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
   if (!entered) {
     return (
       <div className="landing">
+        <Confetti />
         <div className="landing-inner">
           <p className="landing-year">2026학년도</p>
           <h1 className="landing-title">어울림 체육활동 한마당</h1>
