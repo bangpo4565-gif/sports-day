@@ -144,7 +144,9 @@ export default function AdminTab() {
           <label>종목 선택</label>
           <select value={eventId} onChange={(e) => setEventId(e.target.value)}>
             {events.map((ev) => (
-              <option key={ev.id} value={ev.id}>{ev.name}</option>
+              <option key={ev.id} value={ev.id}>
+                {ev.name}{ev.participants ? ` (${ev.participants})` : ''}
+              </option>
             ))}
           </select>
         </div>

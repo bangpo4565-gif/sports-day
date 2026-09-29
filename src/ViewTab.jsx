@@ -103,7 +103,10 @@ export default function ViewTab() {
         <h2>종목별 상세 결과</h2>
         {events.map((ev) => (
           <div key={ev.id} className="event-block">
-            <h3>{ev.name}</h3>
+            <h3>
+              {ev.name}
+              {ev.participants && <span className="event-participants"> · {ev.participants}</span>}
+            </h3>
             <table className="board small">
               <thead>
                 <tr>
