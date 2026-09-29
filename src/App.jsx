@@ -29,7 +29,7 @@ const TABS = [
   { key: 'admin', label: '점수 입력' },
   { key: 'info', label: '대회 안내' },
   { key: 'search', label: '출전 선수 찾기' },
-  { key: 'roster', label: '학생 배정' },
+  { key: 'roster', label: '학생 참가신청' },
   { key: 'photos', label: '활동 사진' },
   { key: 'flags', label: '학급 깃발' },
   { key: 'flagvote', label: '깃발 투표' },
@@ -48,7 +48,7 @@ function App() {
         <div className="landing-inner">
           <p className="landing-dday">{getDday()}</p>
           <p className="landing-year">2026학년도</p>
-          <h1 className="landing-title">어울림 체육활동 한마당</h1>
+          <h1 className="landing-title">농소중학교 어울림 체육활동 한마당</h1>
           <p className="landing-sub">농소중학교 · 2026. 10. 30.(금)</p>
           <WeatherWidget />
           <button className="landing-btn" onClick={() => setEntered(true)}>
@@ -64,7 +64,7 @@ function App() {
       <header className="hero">
         <div className="hero-top">
           <div>
-            <h1>어울림 체육활동 한마당</h1>
+            <h1>2026학년도 농소중학교 어울림 체육활동 한마당</h1>
             <p className="subtitle">
               학년별 반 대항전 · 실시간 결과 · {getDday()}
             </p>

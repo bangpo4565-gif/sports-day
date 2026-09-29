@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
+import { toSafeKey, fromSafeKey } from './safeKey'
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '11111111'
 const BUCKET = 'activity-photos'
 
 function displayName(fileName) {
-  return fileName.replace(/^\d+-/, '')
+  const rest = fileName.replace(/^\d+-/, '')
+  return fromSafeKey(rest) || rest
 }
 
 export default function PhotoTab() {
@@ -63,8 +65,7 @@ export default function PhotoTab() {
     setUploading(true)
     setUploadMessage('')
 
-    const safeName = file.name.replace(/[^\w.\-가-힣]/g, '_')
-    const fileName = `${Date.now()}-${safeName}`
+    const fileName = `${Date.now()}-${toSafeKey(file.name)}`
 
     const { error } = await supabase.storage.from(BUCKET).upload(fileName, file)
 

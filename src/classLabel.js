@@ -1,11 +1,13 @@
 // 학급 깃발 파일 이름 파싱 + 학년 구분 (FlagTab, FlagVoteTab에서 같이 씀)
+import { fromSafeKey } from './safeKey'
 
 export function parseName(fileName) {
   const idx = fileName.indexOf('__')
   if (idx === -1) return { label: '', original: fileName }
-  const label = fileName.slice(0, idx)
+  const label = fromSafeKey(fileName.slice(0, idx))
   const rest = fileName.slice(idx + 2).replace(/^\d+-/, '')
-  return { label, original: rest }
+  const original = fromSafeKey(rest) || rest
+  return { label, original }
 }
 
 // "1학년 3반" 같은 텍스트에서 학년 숫자(1~3)를 뽑아내기. 못 찾으면 null.

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabaseClient'
 import { parseName, parseGrade } from './classLabel'
+import { toSafeKey } from './safeKey'
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '11111111'
 const BUCKET = 'class-flags'
@@ -76,9 +77,7 @@ export default function FlagTab() {
     setUploading(true)
     setUploadMessage('')
 
-    const safeLabel = classLabel.trim().replace(/[^\w가-힣]/g, '')
-    const safeName = file.name.replace(/[^\w.\-가-힣]/g, '_')
-    const fileName = `${safeLabel}__${Date.now()}-${safeName}`
+    const fileName = `${toSafeKey(classLabel.trim())}__${Date.now()}-${toSafeKey(file.name)}`
 
     const { error } = await supabase.storage.from(BUCKET).upload(fileName, file)
 

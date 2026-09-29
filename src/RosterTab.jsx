@@ -164,7 +164,7 @@ export default function RosterTab() {
   if (!authed) {
     return (
       <div className="panel narrow">
-        <h2>학생 배정 (교사용)</h2>
+        <h2>학생 참가신청 (교사용)</h2>
         <form onSubmit={submitPassword} className="pw-form">
           <input
             type="password"
