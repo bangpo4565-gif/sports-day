@@ -1,21 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabaseClient'
+import { parseName, parseGrade } from './classLabel'
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '11111111'
 const BUCKET = 'class-flags'
-
-function parseName(fileName) {
-  const idx = fileName.indexOf('__')
-  if (idx === -1) return { label: '', original: fileName }
-  const label = fileName.slice(0, idx)
-  const rest = fileName.slice(idx + 2).replace(/^\d+-/, '')
-  return { label, original: rest }
-}
 
 export default function FlagTab() {
   const [photos, setPhotos] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+
+  const [grade, setGrade] = useState(1)
 
   const [authed, setAuthed] = useState(false)
   const [pw, setPw] = useState('')
@@ -39,11 +34,15 @@ export default function FlagTab() {
       setPhotos([])
     } else {
       const files = (data || []).filter((f) => f.id)
-      const withUrls = files.map((f) => ({
-        name: f.name,
-        url: supabase.storage.from(BUCKET).getPublicUrl(f.name).data.publicUrl,
-        ...parseName(f.name),
-      }))
+      const withUrls = files.map((f) => {
+        const parsed = parseName(f.name)
+        return {
+          name: f.name,
+          url: supabase.storage.from(BUCKET).getPublicUrl(f.name).data.publicUrl,
+          ...parsed,
+          grade: parseGrade(parsed.label),
+        }
+      })
       setPhotos(withUrls)
     }
     setLoading(false)
@@ -52,6 +51,9 @@ export default function FlagTab() {
   useEffect(() => {
     loadPhotos()
   }, [])
+
+  const gradePhotos = useMemo(() => photos.filter((p) => p.grade === grade), [photos, grade])
+  const unclassified = useMemo(() => photos.filter((p) => p.grade === null), [photos])
 
   function submitPassword(e) {
     e.preventDefault()
@@ -124,18 +126,30 @@ export default function FlagTab() {
 
   return (
     <div>
+      <div className="grade-tabs">
+        {[1, 2, 3].map((g) => (
+          <button
+            key={g}
+            className={`grade-tab${grade === g ? ' active' : ''}`}
+            onClick={() => setGrade(g)}
+          >
+            {g}학년
+          </button>
+        ))}
+      </div>
+
       <section className="panel">
-        <h2>학급 깃발 사진</h2>
+        <h2>{grade}학년 학급 깃발 사진</h2>
 
         {loading && <p className="status-text">불러오는 중...</p>}
         {loadError && <p className="error">{loadError}</p>}
-        {!loading && !loadError && photos.length === 0 && (
-          <p className="status-text">아직 올라온 깃발 사진이 없어요.</p>
+        {!loading && !loadError && gradePhotos.length === 0 && (
+          <p className="status-text">아직 {grade}학년 깃발 사진이 없어요.</p>
         )}
 
-        {photos.length > 0 && (
+        {gradePhotos.length > 0 && (
           <div className="photo-grid">
-            {photos.map((p) => (
+            {gradePhotos.map((p) => (
               <div key={p.name} className="photo-item">
                 {p.label && <div className="photo-label">{p.label}</div>}
                 <a href={p.url} target="_blank" rel="noreferrer">
@@ -162,6 +176,14 @@ export default function FlagTab() {
               </div>
             ))}
           </div>
+        )}
+
+        {unclassified.length > 0 && (
+          <p className="status-text" style={{ marginTop: 14 }}>
+            학년을 알 수 없는 사진이 {unclassified.length}개 있어요: {unclassified.map((p) => p.label || p.name).join(', ')}
+            <br />
+            (이름을 "1학년 3반"처럼 다시 올려주시면 학년 탭에 나타나요)
+          </p>
         )}
       </section>
 

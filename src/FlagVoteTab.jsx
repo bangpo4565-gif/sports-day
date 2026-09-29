@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabaseClient'
+import { pointsForRank, RANK_OPTIONS, rankLabel } from './points'
+import { parseName, parseGrade } from './classLabel'
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '11111111'
 const BUCKET = 'class-flags'
 
-function parseName(fileName) {
-  const idx = fileName.indexOf('__')
-  if (idx === -1) return { label: '(이름 없음)' }
-  return { label: fileName.slice(0, idx) }
+function parseLabel(fileName) {
+  const { label } = parseName(fileName)
+  return label || '(이름 없음)'
 }
 
 export default function FlagVoteTab() {
@@ -17,12 +18,14 @@ export default function FlagVoteTab() {
   const [teacherName, setTeacherName] = useState('')
   const [nameConfirmed, setNameConfirmed] = useState(false)
 
-  const [candidates, setCandidates] = useState([])
+  const [grade, setGrade] = useState(1)
+  const [candidates, setCandidates] = useState([]) // { label, url, grade }
   const [votes, setVotes] = useState([])
+  const [ranks, setRanks] = useState({}) // label -> rank
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+  const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
-  const [voting, setVoting] = useState(false)
 
   async function loadAll() {
     setLoading(true)
@@ -39,10 +42,11 @@ export default function FlagVoteTab() {
       const files = (photoRes.data || []).filter((f) => f.id)
       const byLabel = new Map()
       files.forEach((f) => {
-        const { label } = parseName(f.name)
+        const label = parseLabel(f.name)
         if (!byLabel.has(label)) {
           byLabel.set(label, {
             label,
+            grade: parseGrade(label),
             url: supabase.storage.from(BUCKET).getPublicUrl(f.name).data.publicUrl,
           })
         }
@@ -80,33 +84,78 @@ export default function FlagVoteTab() {
     setNameConfirmed(true)
   }
 
-  const myVote = useMemo(
-    () => votes.find((v) => v.teacher_name === teacherName.trim()),
-    [votes, teacherName]
+  const gradeCandidates = useMemo(
+    () => candidates.filter((c) => c.grade === grade).sort((a, b) => a.label.localeCompare(b.label, 'ko')),
+    [candidates, grade]
   )
 
-  const tally = useMemo(() => {
-    const counts = {}
-    votes.forEach((v) => {
-      counts[v.class_label] = (counts[v.class_label] || 0) + 1
-    })
-    return Object.entries(counts).sort((a, b) => b[1] - a[1])
-  }, [votes])
+  const unclassified = useMemo(() => candidates.filter((c) => c.grade === null), [candidates])
 
-  async function castVote(label) {
-    setVoting(true)
+  // 선생님이 이 학년에 이미 투표한 내용 불러와서 채워넣기
+  useEffect(() => {
+    if (!nameConfirmed) return
+    const mine = {}
+    gradeCandidates.forEach((c) => {
+      const v = votes.find(
+        (v) => v.teacher_name === teacherName.trim() && v.grade === grade && v.class_label === c.label
+      )
+      if (v) mine[c.label] = v.rank
+    })
+    setRanks(mine)
     setMessage('')
-    const { error } = await supabase
-      .from('flag_votes')
-      .upsert({ teacher_name: teacherName.trim(), class_label: label }, { onConflict: 'teacher_name' })
-    setVoting(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [grade, nameConfirmed, candidates])
+
+  function setRank(label, rank) {
+    setRanks((prev) => ({ ...prev, [label]: rank ? Number(rank) : undefined }))
+  }
+
+  async function saveVotes() {
+    setMessage('')
+    const picked = gradeCandidates.filter((c) => ranks[c.label])
+    const usedRanks = picked.map((c) => ranks[c.label])
+    const hasDuplicate = new Set(usedRanks).size !== usedRanks.length
+    if (hasDuplicate) {
+      setMessage('같은 순위를 두 반에 줄 수 없어요. 순위를 다시 확인해주세요.')
+      return
+    }
+
+    setSaving(true)
+    const rows = picked.map((c) => ({
+      teacher_name: teacherName.trim(),
+      grade,
+      class_label: c.label,
+      rank: ranks[c.label],
+      points: pointsForRank(ranks[c.label]),
+    }))
+
+    const { error } = rows.length
+      ? await supabase.from('flag_votes').upsert(rows, { onConflict: 'teacher_name,grade,class_label' })
+      : { error: null }
+
+    setSaving(false)
     if (error) {
-      setMessage('투표 중 오류가 났어요: ' + error.message)
+      setMessage('저장 중 오류가 났어요: ' + error.message)
     } else {
-      setMessage(`${label}에 투표했어요!`)
+      setMessage('투표 저장 완료!')
       loadAll()
     }
   }
+
+  const leaderboard = useMemo(() => {
+    return gradeCandidates
+      .map((c) => {
+        const cVotes = votes.filter((v) => v.grade === grade && v.class_label === c.label)
+        const avg = cVotes.length ? cVotes.reduce((sum, v) => sum + v.points, 0) / cVotes.length : 0
+        return { ...c, avg, count: cVotes.length }
+      })
+      .sort((a, b) => b.avg - a.avg)
+  }, [gradeCandidates, votes, grade])
+
+  const votedTeachers = useMemo(() => {
+    const names = new Set(votes.filter((v) => v.grade === grade).map((v) => v.teacher_name))
+    return names.size
+  }, [votes, grade])
 
   if (!authed) {
     return (
@@ -130,7 +179,7 @@ export default function FlagVoteTab() {
     return (
       <div className="panel narrow">
         <h2>선생님 성함을 입력해주세요</h2>
-        <p className="status-text">한 분당 한 표만 투표할 수 있어요. (다시 투표하면 이전 투표는 바뀌어요)</p>
+        <p className="status-text">학년별로 마음에 드는 깃발 5개를 골라 1위~5위를 매길 수 있어요.</p>
         <form onSubmit={confirmName} className="pw-form">
           <input
             type="text"
@@ -146,48 +195,97 @@ export default function FlagVoteTab() {
 
   return (
     <div>
+      <div className="grade-tabs">
+        {[1, 2, 3].map((g) => (
+          <button
+            key={g}
+            className={`grade-tab${grade === g ? ' active' : ''}`}
+            onClick={() => setGrade(g)}
+          >
+            {g}학년
+          </button>
+        ))}
+      </div>
+
       <section className="panel">
-        <h2>학급 깃발 투표</h2>
+        <h2>{grade}학년 깃발 투표</h2>
         <p className="status-text">
-          {teacherName}님, 마음에 드는 학급 깃발을 골라주세요.
-          {myVote && ` (현재 내 투표: ${myVote.class_label})`}
+          {teacherName}님, 마음에 드는 깃발 최대 5개를 골라 1위~5위를 매겨주세요.
         </p>
-        {message && <p className="save-message">{message}</p>}
         {loading && <p className="status-text">불러오는 중...</p>}
         {loadError && <p className="error">{loadError}</p>}
-        {!loading && candidates.length === 0 && !loadError && (
-          <p className="status-text">아직 올라온 학급 깃발 사진이 없어요.</p>
+        {!loading && gradeCandidates.length === 0 && !loadError && (
+          <p className="status-text">
+            아직 {grade}학년 깃발 사진이 없어요. (활동 사진처럼 학급 깃발 탭에서 "1학년 3반" 형식으로 올려주세요)
+          </p>
         )}
 
-        {candidates.length > 0 && (
+        {gradeCandidates.length > 0 && (
           <div className="photo-grid">
-            {candidates.map((c) => (
-              <div key={c.label} className={`photo-item${myVote?.class_label === c.label ? ' voted' : ''}`}>
+            {gradeCandidates.map((c) => (
+              <div key={c.label} className="photo-item">
                 <div className="photo-label">{c.label}</div>
                 <img src={c.url} alt={c.label} loading="lazy" />
-                <div className="photo-actions">
-                  <button className="photo-action-btn" disabled={voting} onClick={() => castVote(c.label)}>
-                    {myVote?.class_label === c.label ? '✓ 투표함' : '투표하기'}
-                  </button>
+                <div style={{ padding: '6px 8px' }}>
+                  <select value={ranks[c.label] || ''} onChange={(e) => setRank(c.label, e.target.value)}>
+                    <option value="">선택 안 함</option>
+                    {RANK_OPTIONS.map((r) => (
+                      <option key={r} value={r}>
+                        {rankLabel(r)}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             ))}
           </div>
         )}
+
+        <button className="save-btn" onClick={saveVotes} disabled={saving || gradeCandidates.length === 0}>
+          {saving ? '저장 중...' : '투표 저장'}
+        </button>
+        {message && <p className="save-message">{message}</p>}
+
+        {unclassified.length > 0 && (
+          <p className="status-text" style={{ marginTop: 14 }}>
+            학년을 알 수 없는 깃발 사진이 {unclassified.length}개 있어요: {unclassified.map((c) => c.label).join(', ')}
+            <br />
+            (학급 깃발 탭에서 이름을 "1학년 3반"처럼 다시 올려주시면 여기서도 투표할 수 있어요)
+          </p>
+        )}
       </section>
 
       <section className="panel">
-        <h2>실시간 투표 현황 ({votes.length}표)</h2>
-        <div className="song-list">
-          {tally.map(([label, count], i) => (
-            <div key={label} className="song-row">
-              <span className="song-index">{i + 1}</span>
-              <span className="song-title">{label}</span>
-              <span className="song-name">{count}표</span>
-            </div>
-          ))}
-          {tally.length === 0 && <p className="status-text">아직 투표가 없어요.</p>}
-        </div>
+        <h2>
+          {grade}학년 실시간 순위 (참여 선생님 {votedTeachers}명)
+        </h2>
+        <table className="board">
+          <thead>
+            <tr>
+              <th>순위</th>
+              <th>반</th>
+              <th>평균 점수</th>
+              <th>투표 수</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leaderboard.map((c, i) => (
+              <tr key={c.label} className={i === 0 && c.avg > 0 ? 'first' : ''}>
+                <td>{i + 1}</td>
+                <td>{c.label}</td>
+                <td className="total">{c.avg ? c.avg.toFixed(1) : '-'}</td>
+                <td className="muted">{c.count}표</td>
+              </tr>
+            ))}
+            {leaderboard.length === 0 && (
+              <tr>
+                <td colSpan={4} className="muted">
+                  아직 깃발 사진이 없어요.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </section>
     </div>
   )

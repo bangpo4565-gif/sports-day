@@ -10,6 +10,7 @@ import FlagVoteTab from './FlagVoteTab'
 import EntranceVoteTab from './EntranceVoteTab'
 import SongTab from './SongTab'
 import Confetti from './Confetti'
+import WeatherWidget from './WeatherWidget'
 import './App.css'
 
 const EVENT_DATE = new Date(2026, 9, 30) // 2026-10-30
@@ -49,6 +50,7 @@ function App() {
           <p className="landing-year">2026학년도</p>
           <h1 className="landing-title">어울림 체육활동 한마당</h1>
           <p className="landing-sub">농소중학교 · 2026. 10. 30.(금)</p>
+          <WeatherWidget />
           <button className="landing-btn" onClick={() => setEntered(true)}>
             들어가기
           </button>
