@@ -3,33 +3,29 @@ import ViewTab from './ViewTab'
 import AdminTab from './AdminTab'
 import PhotoTab from './PhotoTab'
 import RosterTab from './RosterTab'
-import schoolBuilding from './assets/school/school-building.png'
-import studentLeft from './assets/school/student-left.jpg'
-import studentRight from './assets/school/student-right.jpg'
 import './App.css'
 
 function App() {
+  const [entered, setEntered] = useState(false)
   const [tab, setTab] = useState('view')
+
+  if (!entered) {
+    return (
+      <div className="landing">
+        <div className="landing-inner">
+          <p className="landing-year">2026학년도</p>
+          <h1 className="landing-title">어울림 체육활동 한마당</h1>
+          <p className="landing-sub">농소중학교</p>
+          <button className="landing-btn" onClick={() => setEntered(true)}>
+            들어가기
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="page">
-      <div className="side-photo side-photo-left">
-        <img src={studentLeft} alt="체육대회 학생 활동 사진" />
-      </div>
-      <div className="side-photo side-photo-right">
-        <img src={studentRight} alt="체육대회 학생 활동 사진" />
-      </div>
-
-      <div className="school-banner">
-        <span className="banner-emoji banner-emoji-left" aria-hidden="true">🏃‍♂️🤸‍♀️🏃‍♀️</span>
-        <span className="banner-emoji banner-emoji-right" aria-hidden="true">⚽🎉🏅</span>
-        <img src={schoolBuilding} alt="농소중학교 전경" className="school-photo" />
-        <div className="school-banner-overlay">
-          <p className="school-name">농소중학교</p>
-          <p className="school-motto">교훈 · 사랑 · 정직 · 성실</p>
-        </div>
-      </div>
-
       <header className="hero">
         <div className="hero-top">
           <div>
