@@ -34,11 +34,10 @@ body {
 .tabs { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
 .tab {
   padding: 10px 18px; border-radius: 999px; border: 1px solid var(--border);
-  background: var(--panel-2); color: var(--accent); font-size: 14px; font-weight: 700;
+  background: var(--panel-2); color: var(--text); font-size: 14px; font-weight: 600;
   cursor: pointer;
 }
 .tab.active { background: var(--accent); color: #1a1a1a; border-color: var(--accent); }
-.tab.home-tab { border-color: var(--accent); }
 
 .grade-tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
 .info-subtabs { margin-bottom: 20px; }
