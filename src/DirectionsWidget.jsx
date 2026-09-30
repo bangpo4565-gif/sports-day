@@ -1,5 +1,5 @@
-const SCHOOL_NAME = '농소중학교'
-const ADDRESS = '울산광역시 북구 호계7길 13 (호계동)'
+const SCHOOL_NAME = '농소운동장'
+const ADDRESS = '울산광역시 북구 창평동 391-1'
 
 const KAKAO_URL = `https://map.kakao.com/link/search/${encodeURIComponent(SCHOOL_NAME)}`
 const NAVER_URL = `https://map.naver.com/p/search/${encodeURIComponent(SCHOOL_NAME)}`
