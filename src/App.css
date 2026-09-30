@@ -368,7 +368,16 @@ body {
 .directions-btn:hover { transform: translateY(-2px); }
 .directions-btn.kakao { background: #fee500; color: #191600; }
 .directions-btn.naver { background: #03c75a; color: #ffffff; }
-.directions-btn.tmap { background: #ea1917; color: #ffffff; }
+.directions-btn.tmap {
+  background: #ffffff; color: #241f5d; border: 1px solid #e3e3ea;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.tmap-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
+  background: linear-gradient(135deg, #4d3df5 0%, #241f5d 100%);
+  color: #ffffff; font-weight: 900; font-size: 13px; font-style: italic;
+}
 .directions-hint {
   color: var(--muted); font-size: 12px; margin: 14px 0 0;
 }

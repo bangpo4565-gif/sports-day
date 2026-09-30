@@ -32,6 +32,7 @@ export default function DirectionsWidget() {
           네이버지도로 길찾기
         </a>
         <a className="directions-btn tmap" href={TMAP_URL}>
+          <span className="tmap-icon" aria-hidden="true">T</span>
           티맵으로 길찾기
         </a>
       </div>
