@@ -5,8 +5,9 @@ const ADDRESS = '울산광역시 북구 창평동 391-1'
 const GOAL_LON = '129.3596746'
 const GOAL_LAT = '35.6211806'
 
-const KAKAO_URL = `https://map.kakao.com/link/search/${encodeURIComponent(SCHOOL_NAME)}`
-const NAVER_URL = `https://map.naver.com/p/search/${encodeURIComponent(SCHOOL_NAME)}`
+// 좌표를 직접 지정해서 검색결과 목록 없이 바로 그 지점(농소운동장)으로 이동해요.
+const KAKAO_URL = `https://map.kakao.com/link/to/${encodeURIComponent(SCHOOL_NAME)},${GOAL_LAT},${GOAL_LON}`
+const NAVER_URL = `https://map.naver.com/p/search/${encodeURIComponent(ADDRESS)}`
 const TMAP_URL = `tmap://route?rGoName=${encodeURIComponent(SCHOOL_NAME)}&rGoX=${GOAL_LON}&rGoY=${GOAL_LAT}`
 
 export default function DirectionsWidget() {
