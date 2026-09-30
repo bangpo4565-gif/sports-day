@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import NoticeBoard from './NoticeBoard'
+import EditableSection from './EditableSection'
+
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '11111111'
 
 const SUB_TABS = [
   { key: 'notice', label: '공지사항' },
@@ -150,8 +153,88 @@ const RULES = [
   },
 ]
 
+const DEFAULT_TEXT = {
+  datetime: `일시 : 2026. 10. 30.(금), 08:40 ~ 15:30
+장소 : 농소운동장
+대상 : 전교생, 전체교사
+참가신청서 접수 기간 : 2026. 10. 16.(금)까지 참가신청 시스템으로 제출`,
+
+  guide: `[학생]
+1. 어울림 체육활동 참가 시 체육복 또는 반티를 착용한다.
+2. 각 종목의 경기가 진행되는 동안 질서정연하게 해당 학반의 자리에서 응원한다.
+3. 귀중품은 학교에 가져오지 않으며 08:40까지 운동장의 정해진 장소에 집결한다.
+4. 모든 학생들이 경기에 직접 참여할 수 있도록 중복출전을 최대한 제한하여 스포츠의 가치를 경험하게 한다.
+5. 각 종목의 선수들은 자신이 출전하는 경기 종목의 순서와 시간을 숙지하여 경기 진행에 차질이 없도록 한다.
+6. 각반 반장은 체육활동에 참여하는 신청자를 미리 선정하여 경기 진행에 차질이 없도록 한다.
+7. 모든 행사가 끝난 뒤 각 학급의 구역을 깨끗하게 정리 정돈하도록 한다.
+8. 질서를 잘 지켜 즐겁고 안전한 체육대회 행사가 될 수 있도록 한다.
+9. 체육대회 당일 비가 오는 경우는 실내에서 운영 가능한 종목은 체육관에서 운영하고, 체육 관련 영상 시청 후 감상문 쓰기로 대체한다.
+
+[교사]
+1. 반드시 교사의 임장지도 아래 학생들이 질서를 잘 지킬 수 있도록 지도하며 안전에 만전을 기한다.
+2. 모든 학생들이 두 종목 이상의 경기에 참여할 수 있도록 지도한다.
+3. 같은 반 학생이 출전했을 경우 응원에 힘쓰도록 지도한다.
+4. 심판이나 기록을 담당한 교사는 미리 준비물을 가지고 해당 종목이 실시되는 장소에 위치하고, 즐거운 시간이 될 수 있도록 사전에 준비하여 해당 경기가 끝난 즉시 결과를 본부석에 알린다.
+5. 경기 중 '8자 마라톤 줄넘기'는 각 학년 담임 선생님께서 계시를 담당한다. (1반 담임 → 2반 계시, 2반 담임 → 3반 계시 …)
+6. 일정표를 숙지하여 원활한 대회 진행에 협조한다.
+7. 체육대회 당일 비가 오는 경우는 실내에서 운영 가능한 종목은 체육관에서 운영하고, 체육 관련 영상 시청 후 감상문 쓰기로 대체한다.`,
+
+  schedule: `시간 | 종목 | 대상 | 장소 | 비고
+08:50 ~ 09:00 (10분) | 개회식 | | |
+09:00 ~ 09:30 (30분) | 입장식 | 전 교 생 | 운동장 | 담임 임장지도
+09:30 ~ 12:00 | 애벌레 달리기 · 8자 줄넘기 · 이어달리기(1학년 예선) · 줄 파도타기 · 미션 달리기 | 학급 전체 | 운동장 |
+12:00 ~ 13:00 (60분) | 점심 시간 | | |
+13:00 ~ 13:30 (30분) | 댄스동아리 축하공연 | 동아리 학생 | 운동장 | 이벤트
+13:30 ~ 14:40 | 큰 공 굴리기(각 반 6명) · 런닝 줄다리기(각 반 6명) · 이어달리기 | 전 교 생 | 운동장 |
+14:40 ~ 14:45 (5분) | 폐회식 | | | 담임 임장지도
+14:45 ~ 15:30 (45분) | 환경정화활동 | 학급 전체 | |
+
+※ 번외 경기는 당일 진행시간에 따라 실시 유무를 결정하며, 기타 세부 일정은 진행 사정에 따라 변동될 수 있어요.`,
+
+  participants: `종목 | 참가 인원 | 비고
+① 입장식 | 학급 전체 |
+② 8자 줄넘기 | 남학생 6명, 여학생 6명 (줄잡이 포함) | 남·여 비율 동일
+③ 애벌레 달리기 | 남학생 6명, 여학생 6명 | 남·여 비율 동일
+④ 런닝 줄다리기 | 학급 전체 (인원이 적은 반 기준) |
+⑤ 줄 파도타기 | 24명 (남 12, 여 12) |
+⑥ 큰 공 굴리기 | 24명 (남 12, 여 12) |
+⑦ 미션 달리기 | 9명 (남 4, 여 5) |
+⑧ 이어달리기 | 팀별 6명 (남 3, 여 3) |
+⑨ 한마음활동 (응원/질서/환경보전) | 학급 전체 |`,
+
+  scoring: `순번 | 종목 | 1위 | 2위 | 3위 | 4위 | 5위 이상 | 비고
+1 | 입장식 | 300 | 250 | 200 | 150 | 100 | 단체줄다리기 등 3·4·5위전 없음 (기본점수 부여)
+2 | 단체 줄다리기 | 300 | 250 | 200 | 200 | 100 |
+3 | 8자 줄넘기 | 300 | 250 | 200 | 200 | 100 |
+4 | 애벌레 달리기 | 300 | 250 | 200 | 200 | 100 |
+5 | 큰 공 굴리기 | 300 | 250 | 200 | 150 | 100 |
+6 | 줄파도타기 릴레이 | 300 | 250 | 200 | 150 | 100 |
+7 | 미션 달리기 | 300 | 250 | 200 | 150 | 100 |
+8 | 런닝 줄다리기 | 250 | 200 | 150 | 100 | 50 |
+9 | 이어달리기 | 300 | 250 | 200 | 150 | 100 |
+
+☞ 종합성적 판정 시 점수가 같을 경우, 종목별 1위 수가 많은 학급이 우위, 1위 수가 같을 시는 2위 수가 많은 학급이 우위를 점해요. 2위 수도 같을 경우 단체줄다리기 순위가 높은 학급이 우위를 점해요.`,
+
+  rules: RULES.map((r) => `${r.title}\n${r.lines.map((l) => `- ${l}`).join('\n')}`).join('\n\n'),
+}
+
 export default function InfoTab() {
   const [sub, setSub] = useState('notice')
+
+  const [authed, setAuthed] = useState(false)
+  const [pw, setPw] = useState('')
+  const [pwError, setPwError] = useState('')
+
+  function submitPassword(e) {
+    e.preventDefault()
+    if (pw === ADMIN_PASSWORD) {
+      setAuthed(true)
+      setPwError('')
+      setPw('')
+    } else {
+      setPwError('암호가 틀렸어요.')
+    }
+  }
 
   return (
     <div>
@@ -167,22 +250,46 @@ export default function InfoTab() {
         ))}
       </div>
 
-      {sub === 'notice' && <NoticeBoard />}
+      <div className="admin-bar">
+        {!authed ? (
+          <form onSubmit={submitPassword} className="pw-form admin-pw-form">
+            <input
+              type="password"
+              placeholder="교사 암호 입력 (공지·안내 내용 작성/수정)"
+              value={pw}
+              onChange={(e) => setPw(e.target.value)}
+            />
+            <button type="submit">편집 모드 켜기</button>
+          </form>
+        ) : (
+          <div className="admin-bar-active">
+            <span className="admin-bar-badge">✏️ 편집 모드 켜짐 — 모든 탭에서 작성/수정할 수 있어요</span>
+            <button className="cancel-btn admin-bar-off" onClick={() => setAuthed(false)}>
+              편집 모드 끄기
+            </button>
+          </div>
+        )}
+        {pwError && <p className="error">{pwError}</p>}
+      </div>
+
+      {sub === 'notice' && <NoticeBoard authed={authed} />}
 
       {sub === 'datetime' && (
-        <section className="panel">
-          <h2>일시 및 장소</h2>
-          <ul className="info-list">
-            <li>일시 : 2026. 10. 30.(금), 08:40 ~ 15:30</li>
-            <li>장소 : 농소운동장</li>
-            <li>대상 : 전교생, 전체교사</li>
-            <li>참가신청서 접수 기간 : 2026. 10. 16.(금)까지 참가신청 시스템으로 제출</li>
-          </ul>
-        </section>
+        <EditableSection sectionKey="datetime" authed={authed} defaultText={DEFAULT_TEXT.datetime}>
+          <section className="panel">
+            <h2>일시 및 장소</h2>
+            <ul className="info-list">
+              <li>일시 : 2026. 10. 30.(금), 08:40 ~ 15:30</li>
+              <li>장소 : 농소운동장</li>
+              <li>대상 : 전교생, 전체교사</li>
+              <li>참가신청서 접수 기간 : 2026. 10. 16.(금)까지 참가신청 시스템으로 제출</li>
+            </ul>
+          </section>
+        </EditableSection>
       )}
 
       {sub === 'guide' && (
-        <>
+        <EditableSection sectionKey="guide" authed={authed} defaultText={DEFAULT_TEXT.guide}>
           <section className="panel">
             <h2>학생</h2>
             <ol className="info-list">
@@ -215,104 +322,110 @@ export default function InfoTab() {
               <li>체육대회 당일 비가 오는 경우는 실내에서 운영 가능한 종목은 체육관에서 운영하고, 체육 관련 영상 시청 후 감상문 쓰기로 대체한다.</li>
             </ol>
           </section>
-        </>
+        </EditableSection>
       )}
 
       {sub === 'schedule' && (
-        <section className="panel">
-          <h2>경기 진행표</h2>
-          <div className="table-scroll">
-            <table className="board">
-              <thead>
-                <tr>
-                  <th>시간</th>
-                  <th>종목</th>
-                  <th>대상</th>
-                  <th>장소</th>
-                  <th>비고</th>
-                </tr>
-              </thead>
-              <tbody>
-                {SCHEDULE.map((row, i) => (
-                  <tr key={i}>
-                    {row.map((cell, j) => (
-                      <td key={j}>{cell}</td>
-                    ))}
+        <EditableSection sectionKey="schedule" authed={authed} defaultText={DEFAULT_TEXT.schedule}>
+          <section className="panel">
+            <h2>경기 진행표</h2>
+            <div className="table-scroll">
+              <table className="board">
+                <thead>
+                  <tr>
+                    <th>시간</th>
+                    <th>종목</th>
+                    <th>대상</th>
+                    <th>장소</th>
+                    <th>비고</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="status-text" style={{ marginTop: 12 }}>
-            ※ 번외 경기는 당일 진행시간에 따라 실시 유무를 결정하며, 기타 세부 일정은 진행 사정에 따라 변동될 수
-            있어요.
-          </p>
-        </section>
+                </thead>
+                <tbody>
+                  {SCHEDULE.map((row, i) => (
+                    <tr key={i}>
+                      {row.map((cell, j) => (
+                        <td key={j}>{cell}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="status-text" style={{ marginTop: 12 }}>
+              ※ 번외 경기는 당일 진행시간에 따라 실시 유무를 결정하며, 기타 세부 일정은 진행 사정에 따라 변동될 수
+              있어요.
+            </p>
+          </section>
+        </EditableSection>
       )}
 
       {sub === 'participants' && (
-        <section className="panel">
-          <h2>경기 종목 및 참가 대상</h2>
-          <div className="table-scroll">
-            <table className="board">
-              <thead>
-                <tr>
-                  <th>종목</th>
-                  <th>참가 인원</th>
-                  <th>비고</th>
-                </tr>
-              </thead>
-              <tbody>
-                {PARTICIPANTS.map((row, i) => (
-                  <tr key={i}>
-                    {row.map((cell, j) => (
-                      <td key={j}>{cell}</td>
-                    ))}
+        <EditableSection sectionKey="participants" authed={authed} defaultText={DEFAULT_TEXT.participants}>
+          <section className="panel">
+            <h2>경기 종목 및 참가 대상</h2>
+            <div className="table-scroll">
+              <table className="board">
+                <thead>
+                  <tr>
+                    <th>종목</th>
+                    <th>참가 인원</th>
+                    <th>비고</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                </thead>
+                <tbody>
+                  {PARTICIPANTS.map((row, i) => (
+                    <tr key={i}>
+                      {row.map((cell, j) => (
+                        <td key={j}>{cell}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </EditableSection>
       )}
 
       {sub === 'scoring' && (
-        <section className="panel">
-          <h2>종목별 배점</h2>
-          <div className="table-scroll">
-            <table className="board">
-              <thead>
-                <tr>
-                  <th>순번</th>
-                  <th>종목</th>
-                  <th>1위</th>
-                  <th>2위</th>
-                  <th>3위</th>
-                  <th>4위</th>
-                  <th>5위 이상</th>
-                  <th>비고</th>
-                </tr>
-              </thead>
-              <tbody>
-                {SCORING.map((row, i) => (
-                  <tr key={i}>
-                    {row.map((cell, j) => (
-                      <td key={j}>{cell}</td>
-                    ))}
+        <EditableSection sectionKey="scoring" authed={authed} defaultText={DEFAULT_TEXT.scoring}>
+          <section className="panel">
+            <h2>종목별 배점</h2>
+            <div className="table-scroll">
+              <table className="board">
+                <thead>
+                  <tr>
+                    <th>순번</th>
+                    <th>종목</th>
+                    <th>1위</th>
+                    <th>2위</th>
+                    <th>3위</th>
+                    <th>4위</th>
+                    <th>5위 이상</th>
+                    <th>비고</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="status-text" style={{ marginTop: 12 }}>
-            ☞ 종합성적 판정 시 점수가 같을 경우, 종목별 1위 수가 많은 학급이 우위, 1위 수가 같을 시는 2위 수가
-            많은 학급이 우위를 점해요. 2위 수도 같을 경우 단체줄다리기 순위가 높은 학급이 우위를 점해요.
-          </p>
-        </section>
+                </thead>
+                <tbody>
+                  {SCORING.map((row, i) => (
+                    <tr key={i}>
+                      {row.map((cell, j) => (
+                        <td key={j}>{cell}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="status-text" style={{ marginTop: 12 }}>
+              ☞ 종합성적 판정 시 점수가 같을 경우, 종목별 1위 수가 많은 학급이 우위, 1위 수가 같을 시는 2위 수가
+              많은 학급이 우위를 점해요. 2위 수도 같을 경우 단체줄다리기 순위가 높은 학급이 우위를 점해요.
+            </p>
+          </section>
+        </EditableSection>
       )}
 
       {sub === 'rules' && (
-        <>
+        <EditableSection sectionKey="rules" authed={authed} defaultText={DEFAULT_TEXT.rules}>
           {RULES.map((r) => (
             <section key={r.title} className="panel">
               <h2>{r.title}</h2>
@@ -323,7 +436,7 @@ export default function InfoTab() {
               </ul>
             </section>
           ))}
-        </>
+        </EditableSection>
       )}
     </div>
   )

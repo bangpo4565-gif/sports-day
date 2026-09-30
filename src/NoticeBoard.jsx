@@ -1,20 +1,14 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
 
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '11111111'
-
 function formatDate(iso) {
   const d = new Date(iso)
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
-export default function NoticeBoard() {
+export default function NoticeBoard({ authed = false }) {
   const [notices, setNotices] = useState([])
   const [loadError, setLoadError] = useState('')
-
-  const [authed, setAuthed] = useState(false)
-  const [pw, setPw] = useState('')
-  const [pwError, setPwError] = useState('')
 
   const [newContent, setNewContent] = useState('')
   const [editingId, setEditingId] = useState(null)
@@ -49,16 +43,6 @@ export default function NoticeBoard() {
       supabase.removeChannel(channel)
     }
   }, [])
-
-  function submitPassword(e) {
-    e.preventDefault()
-    if (pw === ADMIN_PASSWORD) {
-      setAuthed(true)
-      setPwError('')
-    } else {
-      setPwError('암호가 틀렸어요.')
-    }
-  }
 
   async function addNotice() {
     const content = newContent.trim()
@@ -177,18 +161,8 @@ export default function NoticeBoard() {
 
       {message && <p className="save-message">{message}</p>}
 
-      <div className="notice-admin-toggle">
-        {!authed ? (
-          <form onSubmit={submitPassword} className="pw-form notice-pw-form">
-            <input
-              type="password"
-              placeholder="교사 암호 입력 후 공지 작성/수정"
-              value={pw}
-              onChange={(e) => setPw(e.target.value)}
-            />
-            <button type="submit">입장</button>
-          </form>
-        ) : (
+      {authed && (
+        <div className="notice-admin-toggle">
           <div className="notice-add-form">
             <p className="event-rules-title">✏️ 새 공지사항 작성</p>
             <textarea
@@ -202,9 +176,8 @@ export default function NoticeBoard() {
               {saving ? '등록 중...' : '등록'}
             </button>
           </div>
-        )}
-        {pwError && <p className="error">{pwError}</p>}
-      </div>
+        </div>
+      )}
     </section>
   )
 }

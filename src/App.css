@@ -294,6 +294,21 @@ body {
 .notice-add-form { display: flex; flex-direction: column; gap: 10px; }
 .notice-add-form .save-btn { align-self: flex-start; }
 
+/* 어울림 안내 탭 - 교사 편집 모드 */
+.admin-bar { margin-bottom: 18px; }
+.admin-pw-form { max-width: 460px; }
+.admin-bar-active {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 14px; border-radius: 10px; border: 1px solid var(--accent);
+  background: rgba(245, 197, 66, 0.08);
+}
+.admin-bar-badge { font-size: 13px; font-weight: 700; color: var(--accent); }
+.admin-bar-off { margin-top: 0; padding: 8px 14px; font-size: 13px; }
+
+.section-saved-content { margin: 0; font-size: 14px; line-height: 1.7; color: var(--text); white-space: pre-wrap; }
+.section-edit-textarea { min-height: 260px; }
+.section-admin-row { display: flex; gap: 10px; margin: -8px 0 20px; flex-wrap: wrap; }
+
 /* 출전 선수 찾기 탭 */
 .search-input {
   width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
