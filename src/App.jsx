@@ -27,22 +27,22 @@ function getDday() {
 }
 
 const TABS = [
-  { key: 'videos', label: '시범 영상' },
-  { key: 'view', label: '결과 보기' },
-  { key: 'admin', label: '점수 입력' },
-  { key: 'info', label: '대회 안내' },
-  { key: 'search', label: '출전 선수 찾기' },
-  { key: 'roster', label: '학생 참가신청' },
+  { key: 'info', label: '어울림 체육활동 안내' },
+  { key: 'videos', label: '종목 설명 영상' },
+  { key: 'view', label: '실시간 점수' },
+  { key: 'roster', label: '참가신청' },
+  { key: 'search', label: '내 참가종목 확인' },
+  { key: 'songs', label: '노래 신청' },
   { key: 'photos', label: '활동 사진' },
   { key: 'flags', label: '학급 깃발' },
-  { key: 'flagvote', label: '깃발 투표' },
-  { key: 'entrancevote', label: '입장식 투표' },
-  { key: 'songs', label: '노래 신청' },
+  { key: 'flagvote', label: '깃발 투표 및 순위' },
+  { key: 'entrancevote', label: '입장식 투표 및 순위' },
+  { key: 'admin', label: '점수 입력' },
 ]
 
 function App() {
   const [entered, setEntered] = useState(false)
-  const [tab, setTab] = useState('videos')
+  const [tab, setTab] = useState('info')
 
   if (!entered) {
     return (
@@ -83,6 +83,9 @@ function App() {
           </div>
         </div>
         <div className="tabs">
+          <button className="tab home-tab" onClick={() => setEntered(false)}>
+            🏠 홈
+          </button>
           {TABS.map((t) => (
             <button
               key={t.key}

@@ -7,13 +7,18 @@ const BUCKET = 'demo-videos'
 
 // 미리 넣어둔 종목 시범 영상 (public/videos 폴더 안 파일들)
 const BUILTIN_VIDEOS = [
-  { name: 'builtin-01', title: '줄파도타기', file: '01-video.mp4' },
-  { name: 'builtin-02', title: '애벌레 달리기', file: '02-video.mp4' },
-  { name: 'builtin-03', title: '8자 줄넘기', file: '03-video.mp4' },
-  { name: 'builtin-04', title: '큰 공 굴리기', file: '04-video.mp4' },
-  { name: 'builtin-05', title: '미션 달리기', file: '05-video.mp4' },
-  { name: 'builtin-06', title: '런닝 줄다리기', file: '06-video.mp4' },
-].map((v) => ({ ...v, url: encodeURI(`/videos/${v.file}`), builtin: true }))
+  { name: 'builtin-01', title: '줄파도타기', file: '01-video.mp4', thumb: 'thumb-01.jpg' },
+  { name: 'builtin-02', title: '애벌레 달리기', file: '02-video.mp4', thumb: 'thumb-02.jpg' },
+  { name: 'builtin-03', title: '8자 줄넘기', file: '03-video.mp4', thumb: 'thumb-03.jpg' },
+  { name: 'builtin-04', title: '큰 공 굴리기', file: '04-video.mp4', thumb: 'thumb-04.jpg' },
+  { name: 'builtin-05', title: '미션 달리기', file: '05-video.mp4', thumb: 'thumb-05.jpg' },
+  { name: 'builtin-06', title: '런닝 줄다리기', file: '06-video.mp4', thumb: 'thumb-06.jpg' },
+].map((v) => ({
+  ...v,
+  url: encodeURI(`/videos/${v.file}`),
+  poster: encodeURI(`/videos/${v.thumb}`),
+  builtin: true,
+}))
 
 function displayName(fileName) {
   const rest = fileName.replace(/^\d+-/, '')
@@ -139,7 +144,13 @@ export default function VideoTab() {
         <div className="video-list">
           {[...BUILTIN_VIDEOS, ...videos].map((v) => (
             <div key={v.name} className="video-item">
-              <video src={v.url} controls preload="metadata" className="video-player" />
+              <video
+                src={v.url}
+                poster={v.poster}
+                controls
+                preload="metadata"
+                className="video-player"
+              />
               <div className="video-item-footer">
                 <span className="video-title">{v.title}</span>
                 <div className="photo-actions">
