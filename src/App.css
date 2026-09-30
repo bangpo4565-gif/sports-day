@@ -368,6 +368,7 @@ body {
 .directions-btn:hover { transform: translateY(-2px); }
 .directions-btn.kakao { background: #fee500; color: #191600; }
 .directions-btn.naver { background: #03c75a; color: #ffffff; }
+.directions-btn.tmap { background: #ea1917; color: #ffffff; }
 .directions-hint {
   color: var(--muted); font-size: 12px; margin: 14px 0 0;
 }
