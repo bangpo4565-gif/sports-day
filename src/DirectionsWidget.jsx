@@ -8,7 +8,12 @@ const GOAL_LAT = '35.6211806'
 // 좌표를 직접 지정해서 검색결과 목록 없이 바로 그 지점(농소운동장)으로 이동해요.
 const KAKAO_URL = `https://map.kakao.com/link/to/${encodeURIComponent(SCHOOL_NAME)},${GOAL_LAT},${GOAL_LON}`
 const NAVER_URL = `https://map.naver.com/p/search/${encodeURIComponent(ADDRESS)}`
-const TMAP_URL = `tmap://route?rGoName=${encodeURIComponent(SCHOOL_NAME)}&rGoX=${GOAL_LON}&rGoY=${GOAL_LAT}`
+// 아이폰(rGoName/rGoX/rGoY)과 안드로이드(goalname/goalx/goaly + referrer)가
+// 요구하는 파라미터 이름이 서로 달라서, 둘 다 한번에 넣어줘요.
+const TMAP_NAME = encodeURIComponent(SCHOOL_NAME)
+const TMAP_URL =
+  `tmap://route?rGoName=${TMAP_NAME}&rGoX=${GOAL_LON}&rGoY=${GOAL_LAT}` +
+  `&referrer=com.skt.Tmap&goalx=${GOAL_LON}&goaly=${GOAL_LAT}&goalname=${TMAP_NAME}`
 
 export default function DirectionsWidget() {
   return (
