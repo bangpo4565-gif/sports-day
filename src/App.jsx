@@ -12,6 +12,7 @@ import SongTab from './SongTab'
 import VideoTab from './VideoTab'
 import Confetti from './Confetti'
 import WeatherWidget from './WeatherWidget'
+import DirectionsWidget from './DirectionsWidget'
 import './App.css'
 
 const EVENT_DATE = new Date(2026, 9, 30) // 2026-10-30
@@ -61,6 +62,7 @@ function App() {
           </div>
 
           <WeatherWidget />
+          <DirectionsWidget />
           <button className="landing-btn" onClick={() => setEntered(true)}>
             들어가기
           </button>
