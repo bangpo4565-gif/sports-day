@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import NoticeBoard from './NoticeBoard'
 
 const SUB_TABS = [
+  { key: 'notice', label: '공지사항' },
   { key: 'datetime', label: '일시 및 장소' },
   { key: 'guide', label: '지도사항 및 유의사항' },
   { key: 'schedule', label: '경기 일정표' },
@@ -149,7 +151,7 @@ const RULES = [
 ]
 
 export default function InfoTab() {
-  const [sub, setSub] = useState('datetime')
+  const [sub, setSub] = useState('notice')
 
   return (
     <div>
@@ -164,6 +166,8 @@ export default function InfoTab() {
           </button>
         ))}
       </div>
+
+      {sub === 'notice' && <NoticeBoard />}
 
       {sub === 'datetime' && (
         <section className="panel">

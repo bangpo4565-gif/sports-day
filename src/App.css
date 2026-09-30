@@ -269,6 +269,31 @@ body {
 .table-scroll { overflow-x: auto; }
 .table-scroll .board { min-width: 560px; }
 
+/* 공지사항 */
+.notice-list { display: flex; flex-direction: column; gap: 12px; }
+.notice-item {
+  padding: 14px 16px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--panel-2);
+}
+.notice-content { margin: 0; font-size: 14px; line-height: 1.6; color: var(--text); white-space: pre-wrap; }
+.notice-meta {
+  display: flex; justify-content: space-between; align-items: center; margin-top: 10px;
+  font-size: 12px; color: var(--muted);
+}
+.notice-meta-actions { display: flex; gap: 6px; }
+.notice-textarea {
+  width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--panel); color: var(--text); font-size: 14px; font-family: inherit;
+  resize: vertical; box-sizing: border-box;
+}
+.notice-edit-form { display: flex; flex-direction: column; gap: 10px; }
+.notice-actions { display: flex; gap: 8px; }
+.notice-actions .save-btn, .notice-actions .cancel-btn { margin-top: 0; }
+.notice-admin-toggle { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border); }
+.notice-pw-form { margin-top: 0; max-width: 420px; }
+.notice-add-form { display: flex; flex-direction: column; gap: 10px; }
+.notice-add-form .save-btn { align-self: flex-start; }
+
 /* 출전 선수 찾기 탭 */
 .search-input {
   width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
