@@ -104,7 +104,8 @@ body {
   position: relative; overflow: hidden;
   min-height: 100vh; display: flex; align-items: center; justify-content: center;
   background:
-    radial-gradient(circle at 50% 20%, var(--panel) 0%, var(--bg) 70%);
+    linear-gradient(180deg, rgba(10, 10, 14, 0.55) 0%, rgba(10, 10, 14, 0.75) 55%, rgba(10, 10, 14, 0.92) 100%),
+    url('/landing-bg.jpg') center / cover no-repeat;
   padding: 24px;
 }
 .landing::before,
