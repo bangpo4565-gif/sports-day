@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabaseClient'
+import { EVENT_RULES } from './eventRules'
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '11111111'
 
@@ -101,6 +102,9 @@ export default function RosterTab() {
 
   const checkedCount = Object.values(checked).filter(Boolean).length
 
+  const selectedEvent = useMemo(() => events.find((ev) => ev.id === eventId), [events, eventId])
+  const selectedRules = selectedEvent ? EVENT_RULES[selectedEvent.name] : null
+
   function toggleCheck(studentId) {
     setChecked((prev) => ({ ...prev, [studentId]: !prev[studentId] }))
   }
@@ -164,7 +168,7 @@ export default function RosterTab() {
   if (!authed) {
     return (
       <div className="panel narrow">
-        <h2>학생 배정 (교사용)</h2>
+        <h2>학생 참가신청 (교사용)</h2>
         <form onSubmit={submitPassword} className="pw-form">
           <input
             type="password"
@@ -229,6 +233,17 @@ export default function RosterTab() {
           학생 이름 앞 체크박스를 눌러 여러 명 선택한 다음, <b>저장</b>을 누르면 위에서 고른 종목에 한
           번에 배정돼요. ({checkedCount}명 선택됨)
         </p>
+
+        {selectedRules && (
+          <div className="event-rules-box">
+            <p className="event-rules-title">📋 {selectedEvent.name} 경기 방법</p>
+            <ul className="info-list">
+              {selectedRules.map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div className="roster-actions">
           <button className="save-btn" onClick={saveAssignments} disabled={saving}>
             {saving ? '저장 중...' : '저장'}

@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabaseClient'
 
+function studentNo(s) {
+  // 학번 형식: 학년 + 반(2자리) + 번호(2자리). 예) 1학년 9반 15번 -> 10915
+  return `${s.grade}${String(s.class_no).padStart(2, '0')}${String(s.number).padStart(2, '0')}`
+}
+
 export default function SearchTab() {
   const [students, setStudents] = useState([])
   const [events, setEvents] = useState([])
@@ -26,9 +31,11 @@ export default function SearchTab() {
   }, [])
 
   const results = useMemo(() => {
-    const q = query.trim()
+    const q = query.trim().replace(/\s/g, '')
     if (!q) return []
-    return students.filter((s) => s.name.includes(q)).slice(0, 30)
+    return students
+      .filter((s) => s.name.includes(q) || studentNo(s).includes(q))
+      .slice(0, 30)
   }, [students, query])
 
   function eventsFor(studentId) {
@@ -39,12 +46,12 @@ export default function SearchTab() {
   return (
     <div>
       <section className="panel narrow">
-        <h2>출전 선수 찾기</h2>
-        <p className="status-text">이름을 입력하면 어떤 종목에 참가하는지 바로 보여줘요.</p>
+        <h2>내 참가종목 확인</h2>
+        <p className="status-text">학번 또는 이름을 입력하면 어떤 종목에 참가하는지 바로 보여줘요.</p>
         <input
           className="search-input"
           type="text"
-          placeholder="이름 입력 (예: 홍길동)"
+          placeholder="학번 또는 이름 입력 (예: 10915 또는 홍길동)"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />

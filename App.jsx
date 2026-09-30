@@ -9,7 +9,10 @@ import FlagTab from './FlagTab'
 import FlagVoteTab from './FlagVoteTab'
 import EntranceVoteTab from './EntranceVoteTab'
 import SongTab from './SongTab'
+import VideoTab from './VideoTab'
 import Confetti from './Confetti'
+import WeatherWidget from './WeatherWidget'
+import DirectionsWidget from './DirectionsWidget'
 import './App.css'
 
 const EVENT_DATE = new Date(2026, 9, 30) // 2026-10-30
@@ -24,31 +27,42 @@ function getDday() {
 }
 
 const TABS = [
-  { key: 'view', label: '결과 보기' },
-  { key: 'admin', label: '점수 입력' },
-  { key: 'info', label: '대회 안내' },
-  { key: 'search', label: '출전 선수 찾기' },
-  { key: 'roster', label: '학생 배정' },
+  { key: 'info', label: '어울림 체육활동 안내' },
+  { key: 'videos', label: '종목 설명 영상' },
+  { key: 'view', label: '실시간 점수' },
+  { key: 'roster', label: '참가신청' },
+  { key: 'search', label: '내 참가종목 확인' },
+  { key: 'songs', label: '노래 신청' },
   { key: 'photos', label: '활동 사진' },
   { key: 'flags', label: '학급 깃발' },
-  { key: 'flagvote', label: '깃발 투표' },
-  { key: 'entrancevote', label: '입장식 투표' },
-  { key: 'songs', label: '노래 신청' },
+  { key: 'flagvote', label: '깃발 투표 및 순위' },
+  { key: 'entrancevote', label: '입장식 투표 및 순위' },
+  { key: 'admin', label: '점수 입력' },
 ]
 
 function App() {
   const [entered, setEntered] = useState(false)
-  const [tab, setTab] = useState('view')
+  const [tab, setTab] = useState('info')
 
   if (!entered) {
     return (
       <div className="landing">
         <Confetti />
         <div className="landing-inner">
+          <p className="landing-mascots">🏃‍♂️ 🎉 🏃‍♀️</p>
           <p className="landing-dday">{getDday()}</p>
           <p className="landing-year">2026학년도</p>
-          <h1 className="landing-title">어울림 체육활동 한마당</h1>
+          <h1 className="landing-title">농소중학교 어울림 체육활동 한마당</h1>
           <p className="landing-sub">농소중학교 · 2026. 10. 30.(금)</p>
+
+          <div className="landing-chips">
+            <span className="landing-chip">📅 10. 30.(금) 08:40~15:30</span>
+            <span className="landing-chip">📍 농소운동장</span>
+            <span className="landing-chip">🎽 전교생 · 학년별 반 대항전</span>
+          </div>
+
+          <WeatherWidget />
+          <DirectionsWidget />
           <button className="landing-btn" onClick={() => setEntered(true)}>
             들어가기
           </button>
@@ -62,13 +76,16 @@ function App() {
       <header className="hero">
         <div className="hero-top">
           <div>
-            <h1>어울림 체육활동 한마당</h1>
+            <h1>2026학년도 농소중학교 어울림 체육활동 한마당</h1>
             <p className="subtitle">
               학년별 반 대항전 · 실시간 결과 · {getDday()}
             </p>
           </div>
         </div>
         <div className="tabs">
+          <button className="tab home-tab" onClick={() => setEntered(false)}>
+            🏠 홈
+          </button>
           {TABS.map((t) => (
             <button
               key={t.key}
@@ -81,6 +98,7 @@ function App() {
         </div>
       </header>
 
+      {tab === 'videos' && <VideoTab />}
       {tab === 'view' && <ViewTab />}
       {tab === 'admin' && <AdminTab />}
       {tab === 'info' && <InfoTab />}
