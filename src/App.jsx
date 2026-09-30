@@ -9,6 +9,7 @@ import FlagTab from './FlagTab'
 import FlagVoteTab from './FlagVoteTab'
 import EntranceVoteTab from './EntranceVoteTab'
 import SongTab from './SongTab'
+import VideoTab from './VideoTab'
 import Confetti from './Confetti'
 import WeatherWidget from './WeatherWidget'
 import './App.css'
@@ -25,6 +26,7 @@ function getDday() {
 }
 
 const TABS = [
+  { key: 'videos', label: '시범 영상' },
   { key: 'view', label: '결과 보기' },
   { key: 'admin', label: '점수 입력' },
   { key: 'info', label: '대회 안내' },
@@ -39,17 +41,25 @@ const TABS = [
 
 function App() {
   const [entered, setEntered] = useState(false)
-  const [tab, setTab] = useState('view')
+  const [tab, setTab] = useState('videos')
 
   if (!entered) {
     return (
       <div className="landing">
         <Confetti />
         <div className="landing-inner">
+          <p className="landing-mascots">🏃‍♂️ 🎉 🏃‍♀️</p>
           <p className="landing-dday">{getDday()}</p>
           <p className="landing-year">2026학년도</p>
           <h1 className="landing-title">농소중학교 어울림 체육활동 한마당</h1>
           <p className="landing-sub">농소중학교 · 2026. 10. 30.(금)</p>
+
+          <div className="landing-chips">
+            <span className="landing-chip">📅 10. 30.(금) 08:40~15:30</span>
+            <span className="landing-chip">📍 농소운동장</span>
+            <span className="landing-chip">🎽 전교생 · 학년별 반 대항전</span>
+          </div>
+
           <WeatherWidget />
           <button className="landing-btn" onClick={() => setEntered(true)}>
             들어가기
@@ -83,6 +93,7 @@ function App() {
         </div>
       </header>
 
+      {tab === 'videos' && <VideoTab />}
       {tab === 'view' && <ViewTab />}
       {tab === 'admin' && <AdminTab />}
       {tab === 'info' && <InfoTab />}

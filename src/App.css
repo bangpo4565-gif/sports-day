@@ -132,12 +132,20 @@ body {
   background: var(--accent); display: inline-block; padding: 8px 24px; border-radius: 999px;
   letter-spacing: 0.02em; box-shadow: 0 8px 24px rgba(245, 197, 66, 0.35);
 }
+.landing-mascots { margin: 0 0 10px; font-size: 30px; letter-spacing: 10px; }
 .landing-year { margin: 0; color: var(--accent); font-size: 18px; font-weight: 700; letter-spacing: 0.08em; }
 .landing-title {
   margin: 10px 0 6px; font-size: 40px; font-weight: 900; color: var(--text);
   letter-spacing: -0.01em;
 }
-.landing-sub { margin: 0 0 36px; color: var(--muted); font-size: 15px; }
+.landing-sub { margin: 0 0 20px; color: var(--muted); font-size: 15px; }
+
+.landing-chips { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 0 0 24px; }
+.landing-chip {
+  padding: 9px 16px; border-radius: 999px; font-size: 13px; font-weight: 700;
+  background: rgba(245, 197, 66, 0.1); border: 1px solid rgba(245, 197, 66, 0.35);
+  color: var(--text); white-space: nowrap;
+}
 .landing-btn {
   padding: 16px 40px; border-radius: 999px; border: none;
   background: var(--accent); color: #1a1a1a; font-weight: 800; font-size: 17px; cursor: pointer;
@@ -196,6 +204,18 @@ body {
   background: var(--accent); color: #1a1a1a; font-weight: 700; cursor: pointer; font-size: 14px;
 }
 
+/* 종목 시범 영상 탭 */
+.video-list { display: flex; flex-direction: column; gap: 16px; }
+.video-item {
+  border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--panel-2);
+}
+.video-player { width: 100%; max-height: 420px; display: block; background: #000; }
+.video-item-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 14px; flex-wrap: wrap;
+}
+.video-title { font-weight: 700; font-size: 14px; }
+
 /* 학생 배정 탭 */
 .sticky-select { position: sticky; top: 8px; z-index: 5; }
 
@@ -220,6 +240,12 @@ body {
   border-radius: 999px; padding: 3px 8px; cursor: pointer;
 }
 .tag-remove:hover { color: #ef6461; border-color: #ef6461; }
+
+.event-rules-box {
+  margin-top: 14px; padding: 12px 14px; border-radius: 10px;
+  background: rgba(245, 197, 66, 0.06); border: 1px solid var(--border);
+}
+.event-rules-title { margin: 0 0 8px; font-weight: 700; color: var(--accent); font-size: 13px; }
 
 .event-list { display: flex; flex-direction: column; gap: 8px; }
 .event-chip {
