@@ -1,11 +1,11 @@
-const SCHOOL_NAME = '농소운동장'
+const SCHOOL_NAME = '농소종합운동장'
 const ADDRESS = '울산광역시 북구 창평동 391-1'
 
-// 농소운동장(호수중앙로 14) 좌표 — 티맵 길찾기 연결용
+// 농소종합운동장(호수중앙로 14) 좌표 — 티맵 길찾기 연결용
 const GOAL_LON = '129.3596746'
 const GOAL_LAT = '35.6211806'
 
-// 좌표를 직접 지정해서 검색결과 목록 없이 바로 그 지점(농소운동장)으로 이동해요.
+// 좌표를 직접 지정해서 검색결과 목록 없이 바로 그 지점(농소종합운동장)으로 이동해요.
 const KAKAO_URL = `https://map.kakao.com/link/to/${encodeURIComponent(SCHOOL_NAME)},${GOAL_LAT},${GOAL_LON}`
 const NAVER_URL = `https://map.naver.com/p/search/${encodeURIComponent(ADDRESS)}`
 // 아이폰(rGoName/rGoX/rGoY)과 안드로이드(goalname/goalx/goaly + referrer)가

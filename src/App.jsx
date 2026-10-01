@@ -57,7 +57,7 @@ function App() {
 
           <div className="landing-chips">
             <span className="landing-chip">📅 10. 30.(금) 08:40~15:30</span>
-            <span className="landing-chip">📍 농소운동장</span>
+            <span className="landing-chip">📍 농소종합운동장</span>
             <span className="landing-chip">🎽 전교생 · 학년별 반 대항전</span>
           </div>
 

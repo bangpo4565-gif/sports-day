@@ -139,11 +139,11 @@ body {
   margin: 10px 0 6px; font-size: 40px; font-weight: 900; color: var(--text);
   letter-spacing: -0.01em;
 }
-.landing-sub { margin: 0 0 20px; color: var(--muted); font-size: 15px; }
+.landing-sub { margin: 0 0 20px; color: var(--muted); font-size: 18px; }
 
 .landing-chips { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 0 0 24px; }
 .landing-chip {
-  padding: 9px 16px; border-radius: 999px; font-size: 13px; font-weight: 700;
+  padding: 12px 20px; border-radius: 999px; font-size: 16px; font-weight: 700;
   background: rgba(245, 197, 66, 0.1); border: 1px solid rgba(245, 197, 66, 0.35);
   color: var(--text); white-space: nowrap;
 }
@@ -158,21 +158,21 @@ body {
 
 /* 주간 날씨 */
 .weather-widget {
-  margin: 0 auto 32px; padding: 20px 24px; border-radius: 18px;
+  margin: 0 auto 20px; padding: 12px 16px; border-radius: 16px;
   background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border);
   width: 100%; max-width: 620px;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
 }
-.weather-title { margin: 0 0 14px; font-size: 14px; color: var(--muted); font-weight: 700; letter-spacing: 0.06em; text-align: center; }
-.weather-days { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.weather-title { margin: 0 0 8px; font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: 0.06em; text-align: center; }
+.weather-days { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
 .weather-day {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 14px 10px; border-radius: 14px; min-width: 64px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 6px; border-radius: 10px; min-width: 50px;
 }
 .weather-day.today { background: rgba(245, 197, 66, 0.14); }
-.weather-weekday { font-size: 13px; color: var(--muted); font-weight: 700; }
-.weather-icon { font-size: 30px; }
-.weather-temp { font-size: 14px; }
+.weather-weekday { font-size: 11px; color: var(--muted); font-weight: 700; }
+.weather-icon { font-size: 20px; }
+.weather-temp { font-size: 11px; }
 .weather-max { color: #ff8a8a; font-weight: 700; }
 .weather-min { color: #7ab8ff; }
 @media (max-width: 640px) {
