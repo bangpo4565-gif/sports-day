@@ -18,3 +18,11 @@ export function parseGrade(label) {
   if (m2) return Number(m2[1])
   return null
 }
+
+// "1학년 3반" 같은 텍스트에서 반 숫자를 뽑아내기. 못 찾으면 null.
+// (사진을 올린 순서가 아니라 1반, 2반, 3반... 순서로 정렬할 때 써요)
+export function parseClassNo(label) {
+  const m = label.match(/([0-9]+)\s*반/)
+  if (m) return Number(m[1])
+  return null
+}

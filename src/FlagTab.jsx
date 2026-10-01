@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabaseClient'
-import { parseName, parseGrade } from './classLabel'
+import { parseName, parseGrade, parseClassNo } from './classLabel'
 import { toSafeKey } from './safeKey'
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '11111111'
 const BUCKET = 'class-flags'
+
+// 학년별 반 개수 (supabase.sql의 1학년 9개반 · 2학년 6개반 · 3학년 5개반과 맞춰뒀어요)
+const CLASS_COUNT = { 1: 9, 2: 6, 3: 5 }
 
 export default function FlagTab({ allowUpload = true }) {
   const [photos, setPhotos] = useState([])
@@ -13,10 +16,11 @@ export default function FlagTab({ allowUpload = true }) {
 
   const [grade, setGrade] = useState(1)
 
-  const [authed, setAuthed] = useState(false)
+  const [authed, setAuthed] = useState(true)
   const [pw, setPw] = useState('')
   const [pwError, setPwError] = useState('')
-  const [classLabel, setClassLabel] = useState('')
+  const [uploadGrade, setUploadGrade] = useState(1)
+  const [uploadClassNo, setUploadClassNo] = useState(1)
   const [uploading, setUploading] = useState(false)
   const [uploadMessage, setUploadMessage] = useState('')
   const [busyName, setBusyName] = useState('')
@@ -42,6 +46,7 @@ export default function FlagTab({ allowUpload = true }) {
           url: supabase.storage.from(BUCKET).getPublicUrl(f.name).data.publicUrl,
           ...parsed,
           grade: parseGrade(parsed.label),
+          classNo: parseClassNo(parsed.label),
         }
       })
       setPhotos(withUrls)
@@ -53,7 +58,13 @@ export default function FlagTab({ allowUpload = true }) {
     loadPhotos()
   }, [])
 
-  const gradePhotos = useMemo(() => photos.filter((p) => p.grade === grade), [photos, grade])
+  const gradePhotos = useMemo(
+    () =>
+      photos
+        .filter((p) => p.grade === grade)
+        .sort((a, b) => (a.classNo ?? 999) - (b.classNo ?? 999)),
+    [photos, grade]
+  )
   const unclassified = useMemo(() => photos.filter((p) => p.grade === null), [photos])
 
   function submitPassword(e) {
@@ -69,15 +80,11 @@ export default function FlagTab({ allowUpload = true }) {
   async function handleUpload(e) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (!classLabel.trim()) {
-      setUploadMessage('먼저 학년/반을 입력해주세요. (예: 1학년 3반)')
-      e.target.value = ''
-      return
-    }
     setUploading(true)
     setUploadMessage('')
 
-    const fileName = `${toSafeKey(classLabel.trim())}__${Date.now()}-${toSafeKey(file.name)}`
+    const classLabel = `${uploadGrade}학년 ${uploadClassNo}반`
+    const fileName = `${toSafeKey(classLabel)}__${Date.now()}-${toSafeKey(file.name)}`
 
     const { error } = await supabase.storage.from(BUCKET).upload(fileName, file)
 
@@ -205,14 +212,30 @@ export default function FlagTab({ allowUpload = true }) {
             </>
           ) : (
             <>
-              <input
-                type="text"
-                className="search-input"
-                placeholder="학년/반 입력 (예: 1학년 3반)"
-                value={classLabel}
-                onChange={(e) => setClassLabel(e.target.value)}
-                style={{ marginBottom: 10 }}
-              />
+              <div className="event-select-row" style={{ marginBottom: 10 }}>
+                <label>학년/반 선택</label>
+                <select
+                  value={uploadGrade}
+                  onChange={(e) => {
+                    const g = Number(e.target.value)
+                    setUploadGrade(g)
+                    setUploadClassNo(1)
+                  }}
+                >
+                  {[1, 2, 3].map((g) => (
+                    <option key={g} value={g}>
+                      {g}학년
+                    </option>
+                  ))}
+                </select>
+                <select value={uploadClassNo} onChange={(e) => setUploadClassNo(Number(e.target.value))}>
+                  {Array.from({ length: CLASS_COUNT[uploadGrade] }, (_, i) => i + 1).map((c) => (
+                    <option key={c} value={c}>
+                      {c}반
+                    </option>
+                  ))}
+                </select>
+              </div>
               <label className="upload-btn">
                 {uploading ? '업로드 중...' : '사진 선택해서 올리기'}
                 <input
