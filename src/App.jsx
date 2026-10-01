@@ -92,7 +92,7 @@ function App() {
       {tab === 'view' && <ViewTab />}
       {tab === 'info' && <InfoTab allowEdit={false} />}
       {tab === 'search' && <SearchTab />}
-      {tab === 'flags' && <FlagTab />}
+      {tab === 'flags' && <FlagTab allowUpload={false} />}
       {tab === 'songs' && <SongTab />}
     </div>
   )

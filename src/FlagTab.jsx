@@ -6,7 +6,7 @@ import { toSafeKey } from './safeKey'
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '11111111'
 const BUCKET = 'class-flags'
 
-export default function FlagTab() {
+export default function FlagTab({ allowUpload = true }) {
   const [photos, setPhotos] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -162,7 +162,7 @@ export default function FlagTab() {
                   >
                     ⬇ 다운로드
                   </button>
-                  {authed && (
+                  {allowUpload && authed && (
                     <button
                       className="photo-action-btn danger"
                       disabled={busyName === p.name}
@@ -186,49 +186,51 @@ export default function FlagTab() {
         )}
       </section>
 
-      <section className="panel narrow">
-        <h2>깃발 사진 올리기 / 삭제 (교사용)</h2>
+      {allowUpload && (
+        <section className="panel narrow">
+          <h2>깃발 사진 올리기 / 삭제 (교사용)</h2>
 
-        {!authed ? (
-          <>
-            <form onSubmit={submitPassword} className="pw-form">
+          {!authed ? (
+            <>
+              <form onSubmit={submitPassword} className="pw-form">
+                <input
+                  type="password"
+                  placeholder="암호 입력"
+                  value={pw}
+                  onChange={(e) => setPw(e.target.value)}
+                />
+                <button type="submit">입장</button>
+              </form>
+              {pwError && <p className="error">{pwError}</p>}
+            </>
+          ) : (
+            <>
               <input
-                type="password"
-                placeholder="암호 입력"
-                value={pw}
-                onChange={(e) => setPw(e.target.value)}
+                type="text"
+                className="search-input"
+                placeholder="학년/반 입력 (예: 1학년 3반)"
+                value={classLabel}
+                onChange={(e) => setClassLabel(e.target.value)}
+                style={{ marginBottom: 10 }}
               />
-              <button type="submit">입장</button>
-            </form>
-            {pwError && <p className="error">{pwError}</p>}
-          </>
-        ) : (
-          <>
-            <input
-              type="text"
-              className="search-input"
-              placeholder="학년/반 입력 (예: 1학년 3반)"
-              value={classLabel}
-              onChange={(e) => setClassLabel(e.target.value)}
-              style={{ marginBottom: 10 }}
-            />
-            <label className="upload-btn">
-              {uploading ? '업로드 중...' : '사진 선택해서 올리기'}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleUpload}
-                disabled={uploading}
-                style={{ display: 'none' }}
-              />
-            </label>
-            <p className="status-text" style={{ marginTop: 10 }}>
-              암호 확인이 끝나서 이제 사진마다 삭제 버튼도 보여요.
-            </p>
-            {uploadMessage && <p className="save-message">{uploadMessage}</p>}
-          </>
-        )}
-      </section>
+              <label className="upload-btn">
+                {uploading ? '업로드 중...' : '사진 선택해서 올리기'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUpload}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              <p className="status-text" style={{ marginTop: 10 }}>
+                암호 확인이 끝나서 이제 사진마다 삭제 버튼도 보여요.
+              </p>
+              {uploadMessage && <p className="save-message">{uploadMessage}</p>}
+            </>
+          )}
+        </section>
+      )}
     </div>
   )
 }
