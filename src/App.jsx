@@ -1,13 +1,8 @@
 import { useState } from 'react'
 import ViewTab from './ViewTab'
-import AdminTab from './AdminTab'
-import PhotoTab from './PhotoTab'
-import RosterTab from './RosterTab'
 import InfoTab from './InfoTab'
 import SearchTab from './SearchTab'
 import FlagTab from './FlagTab'
-import FlagVoteTab from './FlagVoteTab'
-import EntranceVoteTab from './EntranceVoteTab'
 import SongTab from './SongTab'
 import VideoTab from './VideoTab'
 import Confetti from './Confetti'
@@ -30,14 +25,9 @@ const TABS = [
   { key: 'info', label: '어울림 체육활동 안내' },
   { key: 'videos', label: '종목 설명 영상' },
   { key: 'view', label: '실시간 점수' },
-  { key: 'roster', label: '참가신청' },
   { key: 'search', label: '내 참가종목 확인' },
   { key: 'songs', label: '노래 신청' },
-  { key: 'photos', label: '활동 사진' },
   { key: 'flags', label: '학급 깃발' },
-  { key: 'flagvote', label: '깃발 투표 및 순위' },
-  { key: 'entrancevote', label: '입장식 투표 및 순위' },
-  { key: 'admin', label: '점수 입력' },
 ]
 
 function App() {
@@ -100,14 +90,9 @@ function App() {
 
       {tab === 'videos' && <VideoTab />}
       {tab === 'view' && <ViewTab />}
-      {tab === 'admin' && <AdminTab />}
-      {tab === 'info' && <InfoTab />}
+      {tab === 'info' && <InfoTab allowEdit={false} />}
       {tab === 'search' && <SearchTab />}
-      {tab === 'roster' && <RosterTab />}
-      {tab === 'photos' && <PhotoTab />}
       {tab === 'flags' && <FlagTab />}
-      {tab === 'flagvote' && <FlagVoteTab />}
-      {tab === 'entrancevote' && <EntranceVoteTab />}
       {tab === 'songs' && <SongTab />}
     </div>
   )

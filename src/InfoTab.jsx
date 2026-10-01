@@ -218,7 +218,7 @@ const DEFAULT_TEXT = {
   rules: RULES.map((r) => `${r.title}\n${r.lines.map((l) => `- ${l}`).join('\n')}`).join('\n\n'),
 }
 
-export default function InfoTab() {
+export default function InfoTab({ allowEdit = true }) {
   const [sub, setSub] = useState('notice')
 
   const [authed, setAuthed] = useState(false)
@@ -236,6 +236,8 @@ export default function InfoTab() {
     }
   }
 
+  const editable = allowEdit && authed
+
   return (
     <div>
       <div className="grade-tabs info-subtabs">
@@ -250,32 +252,34 @@ export default function InfoTab() {
         ))}
       </div>
 
-      <div className="admin-bar">
-        {!authed ? (
-          <form onSubmit={submitPassword} className="pw-form admin-pw-form">
-            <input
-              type="password"
-              placeholder="교사 암호 입력 (공지·안내 내용 작성/수정)"
-              value={pw}
-              onChange={(e) => setPw(e.target.value)}
-            />
-            <button type="submit">편집 모드 켜기</button>
-          </form>
-        ) : (
-          <div className="admin-bar-active">
-            <span className="admin-bar-badge">✏️ 편집 모드 켜짐 — 모든 탭에서 작성/수정할 수 있어요</span>
-            <button className="cancel-btn admin-bar-off" onClick={() => setAuthed(false)}>
-              편집 모드 끄기
-            </button>
-          </div>
-        )}
-        {pwError && <p className="error">{pwError}</p>}
-      </div>
+      {allowEdit && (
+        <div className="admin-bar">
+          {!authed ? (
+            <form onSubmit={submitPassword} className="pw-form admin-pw-form">
+              <input
+                type="password"
+                placeholder="교사 암호 입력 (공지·안내 내용 작성/수정)"
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+              />
+              <button type="submit">편집 모드 켜기</button>
+            </form>
+          ) : (
+            <div className="admin-bar-active">
+              <span className="admin-bar-badge">✏️ 편집 모드 켜짐 — 모든 탭에서 작성/수정할 수 있어요</span>
+              <button className="cancel-btn admin-bar-off" onClick={() => setAuthed(false)}>
+                편집 모드 끄기
+              </button>
+            </div>
+          )}
+          {pwError && <p className="error">{pwError}</p>}
+        </div>
+      )}
 
-      {sub === 'notice' && <NoticeBoard authed={authed} />}
+      {sub === 'notice' && <NoticeBoard authed={editable} />}
 
       {sub === 'datetime' && (
-        <EditableSection sectionKey="datetime" authed={authed} defaultText={DEFAULT_TEXT.datetime}>
+        <EditableSection sectionKey="datetime" authed={editable} defaultText={DEFAULT_TEXT.datetime}>
           <section className="panel">
             <h2>일시 및 장소</h2>
             <ul className="info-list">
@@ -289,7 +293,7 @@ export default function InfoTab() {
       )}
 
       {sub === 'guide' && (
-        <EditableSection sectionKey="guide" authed={authed} defaultText={DEFAULT_TEXT.guide}>
+        <EditableSection sectionKey="guide" authed={editable} defaultText={DEFAULT_TEXT.guide}>
           <section className="panel">
             <h2>학생</h2>
             <ol className="info-list">
@@ -326,7 +330,7 @@ export default function InfoTab() {
       )}
 
       {sub === 'schedule' && (
-        <EditableSection sectionKey="schedule" authed={authed} defaultText={DEFAULT_TEXT.schedule}>
+        <EditableSection sectionKey="schedule" authed={editable} defaultText={DEFAULT_TEXT.schedule}>
           <section className="panel">
             <h2>경기 진행표</h2>
             <div className="table-scroll">
@@ -360,7 +364,7 @@ export default function InfoTab() {
       )}
 
       {sub === 'participants' && (
-        <EditableSection sectionKey="participants" authed={authed} defaultText={DEFAULT_TEXT.participants}>
+        <EditableSection sectionKey="participants" authed={editable} defaultText={DEFAULT_TEXT.participants}>
           <section className="panel">
             <h2>경기 종목 및 참가 대상</h2>
             <div className="table-scroll">
@@ -388,7 +392,7 @@ export default function InfoTab() {
       )}
 
       {sub === 'scoring' && (
-        <EditableSection sectionKey="scoring" authed={authed} defaultText={DEFAULT_TEXT.scoring}>
+        <EditableSection sectionKey="scoring" authed={editable} defaultText={DEFAULT_TEXT.scoring}>
           <section className="panel">
             <h2>종목별 배점</h2>
             <div className="table-scroll">
@@ -425,7 +429,7 @@ export default function InfoTab() {
       )}
 
       {sub === 'rules' && (
-        <EditableSection sectionKey="rules" authed={authed} defaultText={DEFAULT_TEXT.rules}>
+        <EditableSection sectionKey="rules" authed={editable} defaultText={DEFAULT_TEXT.rules}>
           {RULES.map((r) => (
             <section key={r.title} className="panel">
               <h2>{r.title}</h2>
