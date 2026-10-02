@@ -88,12 +88,12 @@ function App() {
         </div>
       </header>
 
-      {tab === 'videos' && <VideoTab />}
+      {tab === 'videos' && <VideoTab allowManage={false} />}
       {tab === 'view' && <ViewTab />}
       {tab === 'info' && <InfoTab allowEdit={false} />}
       {tab === 'search' && <SearchTab />}
       {tab === 'flags' && <FlagTab allowUpload={false} />}
-      {tab === 'songs' && <SongTab />}
+      {tab === 'songs' && <SongTab allowManage={false} />}
     </div>
   )
 }

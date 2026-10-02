@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient'
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '11111111'
 
-export default function SongTab() {
+export default function SongTab({ allowManage = true }) {
   const [songs, setSongs] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -116,7 +116,7 @@ export default function SongTab() {
                 {s.artist ? ` - ${s.artist}` : ''}
               </span>
               <span className="song-name">{s.student_name || '익명'}</span>
-              {authed && (
+              {allowManage && authed && (
                 <button className="tag-remove" onClick={() => deleteSong(s.id)}>
                   삭제
                 </button>
@@ -126,25 +126,27 @@ export default function SongTab() {
         </div>
       </section>
 
-      <section className="panel narrow">
-        <h2>신청곡 삭제 (교사용)</h2>
-        {!authed ? (
-          <>
-            <form onSubmit={submitPassword} className="pw-form">
-              <input
-                type="password"
-                placeholder="암호 입력"
-                value={pw}
-                onChange={(e) => setPw(e.target.value)}
-              />
-              <button type="submit">입장</button>
-            </form>
-            {pwError && <p className="error">{pwError}</p>}
-          </>
-        ) : (
-          <p className="status-text">이제 위 목록에서 삭제 버튼이 보여요.</p>
-        )}
-      </section>
+      {allowManage && (
+        <section className="panel narrow">
+          <h2>신청곡 삭제 (교사용)</h2>
+          {!authed ? (
+            <>
+              <form onSubmit={submitPassword} className="pw-form">
+                <input
+                  type="password"
+                  placeholder="암호 입력"
+                  value={pw}
+                  onChange={(e) => setPw(e.target.value)}
+                />
+                <button type="submit">입장</button>
+              </form>
+              {pwError && <p className="error">{pwError}</p>}
+            </>
+          ) : (
+            <p className="status-text">이제 위 목록에서 삭제 버튼이 보여요.</p>
+          )}
+        </section>
+      )}
     </div>
   )
 }

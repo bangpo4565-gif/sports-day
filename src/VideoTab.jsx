@@ -25,7 +25,7 @@ function displayName(fileName) {
   return fromSafeKey(rest) || rest
 }
 
-export default function VideoTab() {
+export default function VideoTab({ allowManage = true }) {
   const [videos, setVideos] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -161,7 +161,7 @@ export default function VideoTab() {
                   >
                     ⬇ 다운로드
                   </button>
-                  {authed && !v.builtin && (
+                  {allowManage && authed && !v.builtin && (
                     <button
                       className="photo-action-btn danger"
                       disabled={busyName === v.name}
@@ -177,41 +177,43 @@ export default function VideoTab() {
         </div>
       </section>
 
-      <section className="panel narrow">
-        <h2>영상 올리기 / 삭제 (교사용)</h2>
+      {allowManage && (
+        <section className="panel narrow">
+          <h2>영상 올리기 / 삭제 (교사용)</h2>
 
-        {!authed ? (
-          <>
-            <form onSubmit={submitPassword} className="pw-form">
-              <input
-                type="password"
-                placeholder="암호 입력"
-                value={pw}
-                onChange={(e) => setPw(e.target.value)}
-              />
-              <button type="submit">입장</button>
-            </form>
-            {pwError && <p className="error">{pwError}</p>}
-          </>
-        ) : (
-          <>
-            <label className="upload-btn">
-              {uploading ? '업로드 중...' : '영상 선택해서 올리기'}
-              <input
-                type="file"
-                accept="video/*"
-                onChange={handleUpload}
-                disabled={uploading}
-                style={{ display: 'none' }}
-              />
-            </label>
-            <p className="status-text" style={{ marginTop: 10 }}>
-              암호 확인이 끝나서 이제 영상마다 삭제 버튼도 보여요.
-            </p>
-            {uploadMessage && <p className="save-message">{uploadMessage}</p>}
-          </>
-        )}
-      </section>
+          {!authed ? (
+            <>
+              <form onSubmit={submitPassword} className="pw-form">
+                <input
+                  type="password"
+                  placeholder="암호 입력"
+                  value={pw}
+                  onChange={(e) => setPw(e.target.value)}
+                />
+                <button type="submit">입장</button>
+              </form>
+              {pwError && <p className="error">{pwError}</p>}
+            </>
+          ) : (
+            <>
+              <label className="upload-btn">
+                {uploading ? '업로드 중...' : '영상 선택해서 올리기'}
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleUpload}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              <p className="status-text" style={{ marginTop: 10 }}>
+                암호 확인이 끝나서 이제 영상마다 삭제 버튼도 보여요.
+              </p>
+              {uploadMessage && <p className="save-message">{uploadMessage}</p>}
+            </>
+          )}
+        </section>
+      )}
     </div>
   )
 }
