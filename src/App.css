@@ -349,6 +349,23 @@ body {
 .song-title { font-weight: 700; flex: 1; min-width: 120px; }
 .song-name { color: var(--muted); font-size: 13px; }
 
+.song-search-wrap { position: relative; }
+.song-suggestions {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 30;
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+  max-height: 220px; overflow-y: auto; box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+.song-suggestion-item {
+  width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding: 10px 12px; background: none; border: none; border-bottom: 1px solid var(--border);
+  color: var(--text); text-align: left; cursor: pointer; font-size: 13px;
+}
+.song-suggestion-item:last-child { border-bottom: none; }
+.song-suggestion-item:hover { background: var(--bg); }
+.song-suggestion-title { font-weight: 700; }
+.song-suggestion-artist { color: var(--muted); font-size: 12px; }
+.song-suggestion-empty { padding: 10px 12px; color: var(--muted); font-size: 13px; }
+
 /* 오시는 길 위젯 */
 .directions-widget {
   margin: 0 auto 32px; padding: 20px 24px; border-radius: 18px;
