@@ -47,14 +47,41 @@ function jsonpRequest(url, callbackParam) {
   })
 }
 
-// Deezer는 K-pop 가수/한글 검색이 잘 되고, iTunes는 곡이 더 다양해서 둘 다 찾아서 합쳐요.
+// 커버곡/연주곡/트리뷰트 앨범은 진짜 가수 노래보다 뒤로 밀어요 (검색에 자꾸 섞여 나와서).
+const COVER_KEYWORDS = [
+  'tribute', 'cover', 'orchestra', 'ensemble', 'piano', 'karaoke', 'style of', 'instrumental',
+  'lullaby', '커버', '연주', '오르골', '아카펠라', '뮤직박스', 'music box',
+]
+function looksLikeCover(artist) {
+  const a = (artist || '').toLowerCase()
+  return COVER_KEYWORDS.some((kw) => a.includes(kw))
+}
+
+// 가수 이름으로 검색했을 때는, 단순 키워드 검색은 인기순 상위 몇 곡만 보여주고 끝나버려서
+// 특정 노래가 누락될 수 있어요. 그래서 가수를 먼저 찾아서, 그 가수의 노래를 최대한 많이(최대 50곡) 통째로 가져와요.
+async function searchDeezerArtistTracks(term) {
+  const artistRes = await jsonpRequest(
+    `https://api.deezer.com/search/artist?q=${encodeURIComponent(term)}&limit=1&output=jsonp`,
+    'callback'
+  )
+  const artist = artistRes && artistRes.data && artistRes.data[0]
+  if (!artist) return []
+  const tracksRes = await jsonpRequest(
+    `https://api.deezer.com/artist/${artist.id}/top?limit=50&output=jsonp`,
+    'callback'
+  )
+  return (tracksRes.data || []).map((d) => ({ title: d.title, artist: d.artist ? d.artist.name : artist.name }))
+}
+
+// Deezer는 K-pop 가수/한글 검색이 잘 되고, iTunes는 곡이 더 다양해서 셋 다 찾아서 합쳐요.
 async function searchSongs(term) {
-  const [deezerRes, itunesRes] = await Promise.allSettled([
-    jsonpRequest(`https://api.deezer.com/search?q=${encodeURIComponent(term)}&limit=8&output=jsonp`, 'callback'),
+  const [deezerRes, itunesRes, artistRes] = await Promise.allSettled([
+    jsonpRequest(`https://api.deezer.com/search?q=${encodeURIComponent(term)}&limit=25&output=jsonp`, 'callback'),
     jsonpRequest(
-      `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=KR&entity=song&limit=8`,
+      `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=KR&entity=song&limit=25`,
       'callback'
     ),
+    searchDeezerArtistTracks(term),
   ])
 
   const deezerItems =
@@ -65,17 +92,30 @@ async function searchSongs(term) {
     itunesRes.status === 'fulfilled'
       ? (itunesRes.value.results || []).map((d) => ({ title: d.trackName, artist: d.artistName || '' }))
       : []
+  const artistItems = artistRes.status === 'fulfilled' ? artistRes.value : []
 
   const seen = new Set()
   const merged = []
-  for (const item of [...deezerItems, ...itunesItems]) {
+  // 가수의 노래 전체를 가장 먼저 넣어서, 요청한 가수의 곡이 검색 범위에서 잘리지 않게 해요.
+  for (const item of [...artistItems, ...deezerItems, ...itunesItems]) {
     if (!item.title) continue
     const key = `${item.title}__${item.artist}`.toLowerCase()
     if (seen.has(key)) continue
     seen.add(key)
     merged.push(item)
   }
-  return merged.slice(0, 10)
+
+  const queryNormalized = term.trim().toLowerCase().replace(/\s/g, '')
+  merged.sort((a, b) => {
+    const aCover = looksLikeCover(a.artist) ? 1 : 0
+    const bCover = looksLikeCover(b.artist) ? 1 : 0
+    if (aCover !== bCover) return aCover - bCover // 커버곡은 뒤로
+    const aExact = (a.artist || '').toLowerCase().replace(/\s/g, '') === queryNormalized ? 0 : 1
+    const bExact = (b.artist || '').toLowerCase().replace(/\s/g, '') === queryNormalized ? 0 : 1
+    return aExact - bExact // 가수 이름이 정확히 일치하면 앞으로
+  })
+
+  return merged.slice(0, 60)
 }
 
 export default function SongTab({ allowManage = true }) {
@@ -98,7 +138,7 @@ export default function SongTab({ allowManage = true }) {
   const [searching, setSearching] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
 
-  const [authed, setAuthed] = useState(true)
+  const [authed, setAuthed] = useState(false)
   const [pw, setPw] = useState('')
   const [pwError, setPwError] = useState('')
 
