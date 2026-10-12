@@ -7,11 +7,11 @@ function studentNo(s) {
   return `${s.grade}${String(s.class_no).padStart(2, '0')}${String(s.number).padStart(2, '0')}`
 }
 
-// 브라우저에서 iTunes 검색 API를 바로 fetch하면 CORS에 막혀서 결과가 안 올 수 있어서,
+// 브라우저에서 음악 검색 API를 바로 fetch하면 CORS에 막혀서 결과가 안 올 수 있어서,
 // <script> 태그로 불러오는 JSONP 방식을 써요 (이 방식은 CORS 제한을 받지 않아요).
-function searchItunes(term) {
+function jsonpRequest(url, callbackParam) {
   return new Promise((resolve, reject) => {
-    const callbackName = `itunesCb_${Date.now()}_${Math.floor(Math.random() * 100000)}`
+    const callbackName = `jsonpCb_${Date.now()}_${Math.floor(Math.random() * 100000)}`
     let done = false
     const script = document.createElement('script')
 
@@ -42,9 +42,40 @@ function searchItunes(term) {
       reject(new Error('script error'))
     }
 
-    script.src = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=KR&entity=song&limit=8&callback=${callbackName}`
+    script.src = `${url}&${callbackParam}=${callbackName}`
     document.body.appendChild(script)
   })
+}
+
+// Deezer는 K-pop 가수/한글 검색이 잘 되고, iTunes는 곡이 더 다양해서 둘 다 찾아서 합쳐요.
+async function searchSongs(term) {
+  const [deezerRes, itunesRes] = await Promise.allSettled([
+    jsonpRequest(`https://api.deezer.com/search?q=${encodeURIComponent(term)}&limit=8&output=jsonp`, 'callback'),
+    jsonpRequest(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=KR&entity=song&limit=8`,
+      'callback'
+    ),
+  ])
+
+  const deezerItems =
+    deezerRes.status === 'fulfilled'
+      ? (deezerRes.value.data || []).map((d) => ({ title: d.title, artist: d.artist ? d.artist.name : '' }))
+      : []
+  const itunesItems =
+    itunesRes.status === 'fulfilled'
+      ? (itunesRes.value.results || []).map((d) => ({ title: d.trackName, artist: d.artistName || '' }))
+      : []
+
+  const seen = new Set()
+  const merged = []
+  for (const item of [...deezerItems, ...itunesItems]) {
+    if (!item.title) continue
+    const key = `${item.title}__${item.artist}`.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push(item)
+  }
+  return merged.slice(0, 10)
 }
 
 export default function SongTab({ allowManage = true }) {
@@ -67,7 +98,7 @@ export default function SongTab({ allowManage = true }) {
   const [searching, setSearching] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
 
-  const [authed, setAuthed] = useState(true)
+  const [authed, setAuthed] = useState(false)
   const [pw, setPw] = useState('')
   const [pwError, setPwError] = useState('')
 
@@ -132,9 +163,9 @@ export default function SongTab({ allowManage = true }) {
     let active = true
     setSearching(true)
     const timer = setTimeout(() => {
-      searchItunes(query)
-        .then((data) => {
-          if (active) setSuggestions(data.results || [])
+      searchSongs(query)
+        .then((results) => {
+          if (active) setSuggestions(results)
         })
         .catch(() => {
           if (active) setSuggestions([])
@@ -157,9 +188,9 @@ export default function SongTab({ allowManage = true }) {
   }
 
   function pickSuggestion(item) {
-    setSongQuery(`${item.trackName} - ${item.artistName}`)
-    setSongTitle(item.trackName)
-    setArtist(item.artistName)
+    setSongQuery(item.artist ? `${item.title} - ${item.artist}` : item.title)
+    setSongTitle(item.title)
+    setArtist(item.artist || '')
     setSuggestions([])
     setShowSuggestions(false)
   }
@@ -261,15 +292,15 @@ export default function SongTab({ allowManage = true }) {
               <div className="song-suggestions">
                 {searching && <div className="song-suggestion-empty">검색 중...</div>}
                 {!searching &&
-                  suggestions.map((item) => (
+                  suggestions.map((item, idx) => (
                     <button
                       type="button"
-                      key={item.trackId}
+                      key={`${item.title}__${item.artist}__${idx}`}
                       className="song-suggestion-item"
                       onMouseDown={() => pickSuggestion(item)}
                     >
-                      <span className="song-suggestion-title">{item.trackName}</span>
-                      <span className="song-suggestion-artist">{item.artistName}</span>
+                      <span className="song-suggestion-title">{item.title}</span>
+                      <span className="song-suggestion-artist">{item.artist}</span>
                     </button>
                   ))}
                 {!searching && suggestions.length === 0 && (
