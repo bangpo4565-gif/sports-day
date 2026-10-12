@@ -138,7 +138,7 @@ export default function SongTab({ allowManage = true }) {
   const [searching, setSearching] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
 
-  const [authed, setAuthed] = useState(false)
+  const [authed, setAuthed] = useState(true)
   const [pw, setPw] = useState('')
   const [pwError, setPwError] = useState('')
 
