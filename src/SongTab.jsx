@@ -1,14 +1,63 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabaseClient'
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '11111111'
+
+function studentNo(s) {
+  return `${s.grade}${String(s.class_no).padStart(2, '0')}${String(s.number).padStart(2, '0')}`
+}
+
+// 브라우저에서 iTunes 검색 API를 바로 fetch하면 CORS에 막혀서 결과가 안 올 수 있어서,
+// <script> 태그로 불러오는 JSONP 방식을 써요 (이 방식은 CORS 제한을 받지 않아요).
+function searchItunes(term) {
+  return new Promise((resolve, reject) => {
+    const callbackName = `itunesCb_${Date.now()}_${Math.floor(Math.random() * 100000)}`
+    let done = false
+    const script = document.createElement('script')
+
+    const cleanup = () => {
+      delete window[callbackName]
+      if (script.parentNode) script.parentNode.removeChild(script)
+      clearTimeout(timer)
+    }
+
+    const timer = setTimeout(() => {
+      if (done) return
+      done = true
+      cleanup()
+      reject(new Error('timeout'))
+    }, 6000)
+
+    window[callbackName] = (data) => {
+      if (done) return
+      done = true
+      cleanup()
+      resolve(data)
+    }
+
+    script.onerror = () => {
+      if (done) return
+      done = true
+      cleanup()
+      reject(new Error('script error'))
+    }
+
+    script.src = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=KR&entity=song&limit=8&callback=${callbackName}`
+    document.body.appendChild(script)
+  })
+}
 
 export default function SongTab({ allowManage = true }) {
   const [songs, setSongs] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
 
-  const [name, setName] = useState('')
+  const [students, setStudents] = useState([])
+  const [nameQuery, setNameQuery] = useState('')
+  const [selectedStudent, setSelectedStudent] = useState(null)
+  const [showNameSuggestions, setShowNameSuggestions] = useState(false)
+
+  const [songQuery, setSongQuery] = useState('')
   const [songTitle, setSongTitle] = useState('')
   const [artist, setArtist] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -18,7 +67,7 @@ export default function SongTab({ allowManage = true }) {
   const [searching, setSearching] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
 
-  const [authed, setAuthed] = useState(true)
+  const [authed, setAuthed] = useState(false)
   const [pw, setPw] = useState('')
   const [pwError, setPwError] = useState('')
 
@@ -34,8 +83,14 @@ export default function SongTab({ allowManage = true }) {
     setLoading(false)
   }
 
+  async function loadStudents() {
+    const { data } = await supabase.from('students').select('*')
+    setStudents(data || [])
+  }
+
   useEffect(() => {
     loadSongs()
+    loadStudents()
     const channel = supabase
       .channel('songs-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'song_requests' }, () => {
@@ -47,9 +102,28 @@ export default function SongTab({ allowManage = true }) {
     }
   }, [])
 
-  // 노래 제목을 입력하면 실제 존재하는 곡을 찾아서 밑에 자동완성으로 보여줘요.
+  // 이름/학번을 입력하면 실제 학생 명렬에서 찾아서 보여줘요. 명단에 없는 이름은 신청할 수 없어요.
+  const nameResults = useMemo(() => {
+    const q = nameQuery.trim().replace(/\s/g, '')
+    if (!q) return []
+    return students.filter((s) => s.name.includes(q) || studentNo(s).includes(q)).slice(0, 20)
+  }, [students, nameQuery])
+
+  function pickStudent(s) {
+    setSelectedStudent(s)
+    setNameQuery(`${s.grade}학년 ${s.class_no}반 ${s.number}번 ${s.name}`)
+    setShowNameSuggestions(false)
+  }
+
+  function handleNameChange(value) {
+    setNameQuery(value)
+    setSelectedStudent(null)
+    setShowNameSuggestions(true)
+  }
+
+  // 노래 제목이나 가수를 입력하면 실제 존재하는 곡을 찾아서 밑에 자동완성으로 보여줘요.
   useEffect(() => {
-    const query = songTitle.trim()
+    const query = songQuery.trim()
     if (query.length < 2) {
       setSuggestions([])
       setSearching(false)
@@ -57,28 +131,33 @@ export default function SongTab({ allowManage = true }) {
     }
     let active = true
     setSearching(true)
-    const timer = setTimeout(async () => {
-      try {
-        const res = await fetch(
-          `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&country=KR&entity=song&limit=8`
-        )
-        const data = await res.json()
-        if (active) {
-          setSuggestions(data.results || [])
-        }
-      } catch {
-        if (active) setSuggestions([])
-      } finally {
-        if (active) setSearching(false)
-      }
+    const timer = setTimeout(() => {
+      searchItunes(query)
+        .then((data) => {
+          if (active) setSuggestions(data.results || [])
+        })
+        .catch(() => {
+          if (active) setSuggestions([])
+        })
+        .finally(() => {
+          if (active) setSearching(false)
+        })
     }, 350)
     return () => {
       active = false
       clearTimeout(timer)
     }
-  }, [songTitle])
+  }, [songQuery])
+
+  function handleSongQueryChange(value) {
+    setSongQuery(value)
+    setSongTitle(value.trim())
+    setArtist('')
+    setShowSuggestions(true)
+  }
 
   function pickSuggestion(item) {
+    setSongQuery(`${item.trackName} - ${item.artistName}`)
     setSongTitle(item.trackName)
     setArtist(item.artistName)
     setSuggestions([])
@@ -87,18 +166,20 @@ export default function SongTab({ allowManage = true }) {
 
   async function submitSong(e) {
     e.preventDefault()
-    if (!name.trim()) {
-      setMessage('이름을 입력해주세요. 익명으로는 신청할 수 없어요.')
+    if (!selectedStudent) {
+      setMessage('학생 명단에서 본인 이름을 검색해서 선택해주세요. 명단에 없는 이름으로는 신청할 수 없어요.')
       return
     }
     if (!songTitle.trim()) {
-      setMessage('신청할 노래 제목을 입력해주세요.')
+      setMessage('신청할 노래를 검색해서 입력해주세요.')
       return
     }
     setSubmitting(true)
     setMessage('')
     const { error } = await supabase.from('song_requests').insert({
-      student_name: name.trim(),
+      student_name: selectedStudent.name,
+      grade: selectedStudent.grade,
+      class_no: selectedStudent.class_no,
       song_title: songTitle.trim(),
       artist: artist.trim() || null,
     })
@@ -107,6 +188,7 @@ export default function SongTab({ allowManage = true }) {
       setMessage('신청 중 오류가 났어요: ' + error.message)
     } else {
       setMessage('신청 완료! 🎶')
+      setSongQuery('')
       setSongTitle('')
       setArtist('')
       setSuggestions([])
@@ -134,22 +216,48 @@ export default function SongTab({ allowManage = true }) {
       <section className="panel narrow">
         <h2>노래 신청하기</h2>
         <form onSubmit={submitSong} className="song-form">
-          <input type="text" placeholder="이름 (학년 반 이름)" value={name} onChange={(e) => setName(e.target.value)} />
+          <div className="song-search-wrap">
+            <input
+              type="text"
+              placeholder="학번 또는 이름 검색 (예: 10915 또는 홍길동)"
+              value={nameQuery}
+              onChange={(e) => handleNameChange(e.target.value)}
+              onFocus={() => setShowNameSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowNameSuggestions(false), 150)}
+              autoComplete="off"
+            />
+            {showNameSuggestions && nameQuery.trim() && !selectedStudent && (
+              <div className="song-suggestions">
+                {nameResults.length === 0 && (
+                  <div className="song-suggestion-empty">일치하는 학생이 없어요. 학번이나 이름을 다시 확인해주세요.</div>
+                )}
+                {nameResults.map((s) => (
+                  <button
+                    type="button"
+                    key={s.id}
+                    className="song-suggestion-item"
+                    onMouseDown={() => pickStudent(s)}
+                  >
+                    <span className="song-suggestion-title">
+                      {s.grade}학년 {s.class_no}반 {s.number}번 {s.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="song-search-wrap">
             <input
               type="text"
-              placeholder="노래 제목을 입력하면 자동완성이 떠요"
-              value={songTitle}
-              onChange={(e) => {
-                setSongTitle(e.target.value)
-                setShowSuggestions(true)
-              }}
+              placeholder="노래 제목 또는 가수 검색"
+              value={songQuery}
+              onChange={(e) => handleSongQueryChange(e.target.value)}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               autoComplete="off"
             />
-            {showSuggestions && (searching || suggestions.length > 0) && (
+            {showSuggestions && songQuery.trim() && (
               <div className="song-suggestions">
                 {searching && <div className="song-suggestion-empty">검색 중...</div>}
                 {!searching &&
@@ -171,7 +279,6 @@ export default function SongTab({ allowManage = true }) {
             )}
           </div>
 
-          <input type="text" placeholder="가수" value={artist} onChange={(e) => setArtist(e.target.value)} />
           <button type="submit" disabled={submitting}>
             {submitting ? '신청 중...' : '신청하기'}
           </button>
@@ -192,7 +299,10 @@ export default function SongTab({ allowManage = true }) {
                 {s.song_title}
                 {s.artist ? ` - ${s.artist}` : ''}
               </span>
-              <span className="song-name">{s.student_name || '익명'}</span>
+              <span className="song-name">
+                {s.grade && s.class_no ? `${s.grade}학년 ${s.class_no}반 ` : ''}
+                {s.student_name || '익명'}
+              </span>
               {allowManage && authed && (
                 <button className="tag-remove" onClick={() => deleteSong(s.id)}>
                   삭제
